@@ -7,51 +7,48 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
   :root{
-    --bg:#0a0d14; --card:#141a28; --card2:#10141f; --line:#232b40; --line2:#2f3852;
-    --txt:#e8ecf6; --mut:#8892a8; --faint:#5c6580;
-    --accent:#5b8cff; --accent2:#7aa2ff; --ghost:rgba(91,140,255,.14);
-    --ok:#34d399; --okbg:rgba(52,211,153,.13);
-    --warn:#f5b544; --warnbg:rgba(245,181,68,.13);
-    --err:#f2645a; --errbg:rgba(242,100,90,.13);
-    --shadow:0 12px 32px -14px rgba(0,0,0,.7);
+    --bg:#0e1116; --side:#151a22; --card:#1a212b; --inset:#10141b;
+    --line:#293240; --line2:#333d4d;
+    --txt:#e6eaf0; --mut:#8b94a3; --faint:#626c7b;
+    --accent:#4f8cff; --accent-hi:#3d7cf2; --ghost:rgba(79,140,255,.12);
+    --ok:#22c55e; --okbg:rgba(34,197,94,.14);
+    --warn:#f0a92b; --warnbg:rgba(240,169,43,.14);
+    --err:#ef4444; --errbg:rgba(239,68,68,.14);
     --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;font:14px/1.5 var(--font);background:var(--bg);color:var(--txt);
-            -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  html,body{margin:0;height:100%;font:14px/1.5 var(--font);background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased}
   #app{display:grid;grid-template-columns:396px 1fr;height:100%}
-  #side{background:linear-gradient(180deg,#0f131e,#0a0d15);border-right:1px solid var(--line);
-        overflow-y:auto;padding:18px 16px 22px}
+  #side{background:var(--side);border-right:1px solid var(--line);overflow-y:auto;padding:18px 16px 22px}
   #side::-webkit-scrollbar{width:11px}
-  #side::-webkit-scrollbar-thumb{background:#1c2334;border:3px solid transparent;border-radius:20px;background-clip:padding-box}
-  #side::-webkit-scrollbar-thumb:hover{background:#28324a;background-clip:padding-box}
+  #side::-webkit-scrollbar-thumb{background:#232b36;border:3px solid var(--side);background-clip:padding-box}
   /* header */
-  .brand{display:flex;align-items:center;gap:11px;margin:2px 2px 0}
-  .brand .logo{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:#fff;
-     background:linear-gradient(140deg,var(--accent2),#3f6fe0);
-     box-shadow:0 8px 18px -8px var(--accent),inset 0 1px 0 rgba(255,255,255,.3)}
-  .brand h1{font-size:16px;font-weight:650;letter-spacing:.2px;margin:0}
-  .sub{color:var(--mut);font-size:12.5px;line-height:1.55;margin:11px 2px 16px}
+  .hd{display:flex;align-items:center;gap:10px;margin:2px 2px 0}
+  .brand{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
+  .brand .logo{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:#fff;background:var(--accent);flex:0 0 auto}
+  .brand h1{font-size:16px;font-weight:600;letter-spacing:.2px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lang{display:flex;background:var(--inset);border:1px solid var(--line);border-radius:7px;padding:2px;gap:2px;flex:0 0 auto}
+  .lang button{border:0;background:transparent;color:var(--mut);border-radius:5px;padding:5px 8px;font-size:12px;font-weight:600;min-width:30px;cursor:pointer}
+  .lang button:hover:not(.sel){background:#1c232e;color:var(--txt)}
+  .lang button.sel{background:var(--accent);color:#fff}
+  .sub{color:var(--mut);font-size:12.5px;line-height:1.55;margin:11px 2px 13px}
+  .wide{width:100%;margin:0 0 14px}
   /* cards */
-  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);
-        border-radius:15px;padding:15px;margin:0 0 12px;box-shadow:var(--shadow)}
-  .card h2{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;
-           letter-spacing:.9px;color:var(--mut);margin:0 0 13px}
-  .card h2 svg{width:15px;height:15px;color:var(--accent)}
-  /* buttons */
-  button{font:600 13px/1 var(--font);color:var(--txt);background:#1b2334;border:1px solid var(--line2);
-     border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
-     gap:7px;transition:transform .06s,filter .15s,background .15s,border-color .15s}
-  button svg{width:15px;height:15px}
-  button:hover:not(:disabled){background:#222c42;border-color:#3a4560}
-  button:active:not(:disabled){transform:translateY(1px)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:15px;margin:0 0 12px}
+  .card h2{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--mut);margin:0 0 13px}
+  .card h2 svg{width:15px;height:15px;color:var(--accent);flex:0 0 auto}
+  /* buttons (flat) */
+  button{font:600 13px/1 var(--font);color:var(--txt);background:#232b36;border:1px solid var(--line2);border-radius:7px;
+     padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background .12s,border-color .12s,color .12s}
+  button svg{width:15px;height:15px;flex:0 0 auto}
+  button:hover:not(:disabled){background:#2b3542}
+  button:active:not(:disabled){background:#313c4b}
   button:disabled{opacity:.4;cursor:not-allowed}
-  button.primary{color:#fff;border-color:#4f7fe6;background:linear-gradient(180deg,var(--accent2),var(--accent));
-     box-shadow:0 8px 18px -10px var(--accent),inset 0 1px 0 rgba(255,255,255,.28)}
-  button.primary:hover:not(:disabled){filter:brightness(1.07);background:linear-gradient(180deg,var(--accent2),var(--accent))}
-  button.on{color:#04231a;border-color:#2fbf8f;background:linear-gradient(180deg,#5ce7b6,var(--ok));
-     box-shadow:0 8px 18px -10px var(--ok)}
+  button.primary{color:#fff;background:var(--accent);border-color:var(--accent)}
+  button.primary:hover:not(:disabled){background:var(--accent-hi);border-color:var(--accent-hi)}
+  button.on{color:#04230f;background:var(--ok);border-color:var(--ok)}
+  button.on:hover:not(:disabled){background:#1eb257}
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .row{display:flex;gap:8px;align-items:center}
   .row+.row{margin-top:9px}
@@ -62,69 +59,58 @@
   .stat{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center;margin-top:13px}
   .stat .k{color:var(--faint);font-size:12px}
   .stat .v{color:var(--txt);font-variant-numeric:tabular-nums;font-size:12.5px}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 9px;border-radius:20px;
-        font-size:11px;font-weight:600;border:1px solid transparent}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 9px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid transparent}
   .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-  .pill.off{color:var(--warn);background:var(--warnbg);border-color:rgba(245,181,68,.28)}
-  .pill.good{color:var(--ok);background:var(--okbg);border-color:rgba(52,211,153,.28)}
-  .pill.bad{color:var(--err);background:var(--errbg);border-color:rgba(242,100,90,.28)}
+  .pill.off{color:var(--warn);background:var(--warnbg);border-color:rgba(240,169,43,.3)}
+  .pill.good{color:var(--ok);background:var(--okbg);border-color:rgba(34,197,94,.3)}
+  .pill.bad{color:var(--err);background:var(--errbg);border-color:rgba(239,68,68,.3)}
   /* coordinates */
   .coords{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
-  .coord{background:#0c101a;border:1px solid var(--line);border-radius:11px;padding:9px 11px}
+  .coord{background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
   .coord .k{color:var(--faint);font-size:10px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
   .coord .v{font:600 15px/1.2 var(--mono);color:var(--txt);font-variant-numeric:tabular-nums}
   /* fields */
   .fieldlabel{color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px}
-  .field{display:flex;align-items:center;gap:7px;background:#0c101a;border:1px solid var(--line);
-         border-radius:10px;padding:0 11px;transition:.15s}
-  .field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--ghost)}
-  .field input{flex:1;min-width:0;background:transparent;border:0;color:var(--txt);outline:none;
-         font:600 13px var(--mono);padding:9px 0;font-variant-numeric:tabular-nums}
+  .field{display:flex;align-items:center;gap:7px;background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:0 11px}
+  .field:focus-within{border-color:var(--accent)}
+  .field input{flex:1;min-width:0;background:transparent;border:0;color:var(--txt);outline:none;font:600 13px var(--mono);padding:9px 0;font-variant-numeric:tabular-nums}
   .field .u{color:var(--faint);font-size:11.5px;white-space:nowrap;font-weight:500}
-  /* switch rows */
+  /* switch (flat) */
   .opt{display:flex;align-items:center;gap:12px;padding:9px 0;cursor:pointer;user-select:none}
   .opt+.opt{border-top:1px solid var(--line)}
   .opt .t{flex:1;font-size:12.5px;color:var(--txt)}
   .opt .t small{display:block;color:var(--faint);font-size:11px;font-weight:400;margin-top:2px;line-height:1.4}
-  input.sw{flex:0 0 auto;appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:20px;
-     background:#2a3346;border:1px solid var(--line2);position:relative;cursor:pointer;transition:.18s}
-  input.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
-     background:#eef1f8;transition:.18s cubic-bezier(.3,1.3,.5,1);box-shadow:0 1px 3px rgba(0,0,0,.5)}
-  input.sw:checked{background:linear-gradient(180deg,var(--accent2),var(--accent));border-color:var(--accent)}
+  input.sw{flex:0 0 auto;appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:11px;background:#333d4d;border:0;position:relative;cursor:pointer;transition:background .15s}
+  input.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#e6eaf0;transition:transform .15s}
+  input.sw:checked{background:var(--accent)}
   input.sw:checked::after{transform:translateX(16px)}
-  /* segmented control */
-  .seg{display:flex;background:#0c101a;border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px}
-  .seg button{flex:1;border:0;background:transparent;color:var(--mut);border-radius:8px;padding:9px;font-weight:600}
-  .seg button:hover:not(.sel){background:#161d2c;color:var(--txt)}
-  .seg button.sel{color:#fff;background:linear-gradient(180deg,var(--accent2),var(--accent));
-     box-shadow:0 5px 12px -6px var(--accent)}
+  /* segmented */
+  .seg{display:flex;background:var(--inset);border:1px solid var(--line);border-radius:7px;padding:3px;gap:3px}
+  .seg button{flex:1;border:0;background:transparent;color:var(--mut);border-radius:5px;padding:9px;font-weight:600}
+  .seg button:hover:not(.sel){background:#1c232e;color:var(--txt)}
+  .seg button.sel{color:#fff;background:var(--accent)}
   /* text */
   .hint{color:var(--faint);font-size:11.5px;line-height:1.55;margin-top:11px}
   .hint b{color:var(--mut);font-weight:600}
   .foot{color:var(--faint);font-size:11px;line-height:1.55;margin:6px 2px 0}
-  a{color:var(--accent2)}
+  a{color:var(--accent)}
   /* log */
-  #log{font:11.5px/1.55 var(--mono);background:#070a10;border:1px solid var(--line);border-radius:11px;
-       padding:11px;height:166px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+  #log{font:11.5px/1.55 var(--mono);background:#0b0e13;border:1px solid var(--line);border-radius:6px;padding:11px;height:166px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
   #log::-webkit-scrollbar{width:9px}
-  #log::-webkit-scrollbar-thumb{background:#1c2334;border:2px solid transparent;border-radius:8px;background-clip:padding-box}
+  #log::-webkit-scrollbar-thumb{background:#232b36;border:2px solid #0b0e13;background-clip:padding-box}
   #log:empty::before{content:"— idle —";color:var(--faint)}
-  #log .tx{color:#7cc4ff}#log .rx{color:#5fe3a5}#log .sys{color:var(--mut)}#log .er{color:#ff9a90}
-  /* map + search */
+  #log .tx{color:#6db3ff}#log .rx{color:#4ade80}#log .sys{color:var(--mut)}#log .er{color:#ff8a80}
+  /* map + search (flat) */
   #mapwrap{position:relative;height:100%}
-  #map{position:absolute;inset:0;background:#0a0d14}
-  #searchbar{position:absolute;z-index:1000;top:16px;left:50%;transform:translateX(-50%);
-             width:min(480px,calc(100% - 96px))}
-  .searchrow{display:flex;align-items:center;gap:9px;background:rgba(16,20,31,.8);
-     border:1px solid rgba(120,140,180,.24);border-radius:13px;padding:6px 6px 6px 13px;
-     box-shadow:0 14px 38px -12px rgba(0,0,0,.75);backdrop-filter:blur(16px) saturate(1.3)}
-  .searchrow:focus-within{border-color:var(--accent);box-shadow:0 14px 38px -12px rgba(0,0,0,.75),0 0 0 3px var(--ghost)}
+  #map{position:absolute;inset:0;background:var(--bg)}
+  #searchbar{position:absolute;z-index:1000;top:16px;left:50%;transform:translateX(-50%);width:min(480px,calc(100% - 96px))}
+  .searchrow{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:6px 6px 6px 13px}
+  .searchrow:focus-within{border-color:var(--accent)}
   .searchrow>svg{flex:0 0 auto;width:16px;height:16px;color:var(--mut)}
   #q{flex:1;background:transparent;border:0;color:var(--txt);font:14px var(--font);outline:none;min-width:0}
   #q::placeholder{color:var(--mut)}
   #btnGo{padding:8px 15px}
-  #results{margin-top:8px;background:rgba(14,18,28,.96);border:1px solid var(--line);border-radius:13px;
-     overflow:hidden;box-shadow:0 14px 38px -12px rgba(0,0,0,.75);display:none;backdrop-filter:blur(16px)}
+  #results{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:none}
   #results.show{display:block}
   #results .r{padding:10px 14px;cursor:pointer;border-left:2px solid transparent}
   #results .r+.r{border-top:1px solid var(--line)}
@@ -132,12 +118,29 @@
   #results .r .t{color:var(--txt);font-weight:600;font-size:13px}
   #results .r .s{color:var(--mut);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
   #results .empty{padding:12px 14px;color:var(--mut)}
-  /* leaflet theming */
-  .leaflet-control-zoom a{background:rgba(16,20,31,.9)!important;color:#e8ecf6!important;border-color:var(--line)!important}
-  .leaflet-control-zoom a:hover{background:#222c42!important}
-  .leaflet-bar{border:1px solid var(--line)!important;box-shadow:0 10px 26px -12px rgba(0,0,0,.75)!important;overflow:hidden}
-  .leaflet-control-attribution{background:rgba(10,13,20,.72)!important;color:var(--faint)!important;backdrop-filter:blur(6px)}
+  /* leaflet (flat) */
+  .leaflet-control-zoom a{background:var(--card)!important;color:var(--txt)!important;border-color:var(--line)!important}
+  .leaflet-control-zoom a:hover{background:#2b3542!important}
+  .leaflet-bar{border:1px solid var(--line)!important;box-shadow:none!important}
+  .leaflet-control-attribution{background:rgba(14,17,22,.82)!important;color:var(--faint)!important}
   .leaflet-control-attribution a{color:var(--mut)!important}
+  /* manual modal (flat) */
+  #manualModal{position:fixed;inset:0;z-index:2000;display:none;background:rgba(6,8,12,.74);padding:24px}
+  #manualModal.show{display:grid;place-items:center}
+  .modal{width:min(720px,100%);max-height:88vh;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+  .modal header{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}
+  .modal header h3{margin:0;font-size:15px;font-weight:650;flex:1}
+  .modal .close{width:30px;height:30px;padding:0;border-radius:6px}
+  .modal .body{padding:18px 20px;overflow-y:auto;line-height:1.65}
+  .modal .body h4{margin:20px 0 8px;font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.7px}
+  .modal .body h4:first-child{margin-top:0}
+  .modal .body p{margin:0 0 10px;color:var(--txt);font-size:13.5px}
+  .modal .body ul,.modal .body ol{margin:0 0 12px;padding-left:20px;color:var(--txt);font-size:13.5px}
+  .modal .body li{margin:5px 0}
+  .modal .body b{color:var(--txt);font-weight:650}
+  .modal .body .zh{color:var(--mut)}
+  .modal .body code{background:var(--inset);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font:12px var(--mono);color:var(--txt)}
+  .modal .body .src{color:var(--faint);font-size:11.5px;margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
   @media(max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:1fr 48vh}
     #side{order:2;border-right:0;border-top:1px solid var(--line)}#mapwrap{order:1}
     #searchbar{width:calc(100% - 24px);top:12px}}
@@ -146,73 +149,81 @@
 <body>
 <div id="app">
   <div id="side">
-    <div class="brand">
-      <span class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg></span>
-      <h1>HHJ GPS Injector</h1>
+    <div class="hd">
+      <div class="brand">
+        <span class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg></span>
+        <h1>HHJ GPS Injector</h1>
+      </div>
+      <div class="lang" id="langSel">
+        <button data-l="en" title="English">EN</button>
+        <button data-l="zh" title="中文">中</button>
+        <button data-l="ja" title="日本語">日</button>
+      </div>
     </div>
-    <p class="sub">Search or click the map to place a point, then inject it — once or as a moving track — to the HHJ gadget over Web Bluetooth.</p>
+    <p class="sub" data-i18n="subtitle">Search or click the map to place a point, then inject it — once or as a moving track — to the HHJ gadget over Web Bluetooth.</p>
+    <button id="btnManual" class="wide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span data-i18n="manualBtn">Manual</span></button>
 
     <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>Device</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg><span data-i18n="device">Device</span></h2>
       <div class="row">
-        <button id="btnConnect" class="primary grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>Connect</button>
-        <button id="btnDisconnect" disabled>Disconnect</button>
+        <button id="btnConnect" class="primary grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg><span data-i18n="connect">Connect</span></button>
+        <button id="btnDisconnect" data-i18n="disconnect" disabled>Disconnect</button>
       </div>
-      <label class="opt"><span class="t">Show all devices<small>Bypass the AAAAA / br29 name filter</small></span><input type="checkbox" class="sw" id="chkAll"></label>
+      <label class="opt"><span class="t"><span data-i18n="showAll">Show all devices</span><small data-i18n="showAllSub">Bypass the AAAAA / br29 name filter</small></span><input type="checkbox" class="sw" id="chkAll"></label>
       <div class="stat">
-        <span class="k">Link</span><span><span id="stLink" class="pill off">disconnected</span></span>
-        <span class="k">Auth</span><span><span id="stAuth" class="pill off">—</span></span>
-        <span class="k">Device</span><span class="v" id="stName">—</span>
+        <span class="k" data-i18n="link">Link</span><span><span id="stLink" class="pill off" data-k="st_disconnected">disconnected</span></span>
+        <span class="k" data-i18n="auth">Auth</span><span><span id="stAuth" class="pill off">—</span></span>
+        <span class="k" data-i18n="deviceLbl">Device</span><span class="v" id="stName">—</span>
       </div>
-      <div class="hint">Needs <b>Chrome</b> or <b>Edge</b>. Serve over <b>https://</b> or open as a local <b>file://</b>.</div>
+      <div class="hint" data-i18n-html="browserHint">Needs <b>Chrome</b> or <b>Edge</b>. Serve over <b>https://</b> or open as a local <b>file://</b>.</div>
     </div>
 
     <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Injection point</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-i18n="injPoint">Injection point</span></h2>
       <div class="coords">
-        <div class="coord"><div class="k">Latitude</div><div class="v" id="ptLat">—</div></div>
-        <div class="coord"><div class="k">Longitude</div><div class="v" id="ptLon">—</div></div>
+        <div class="coord"><div class="k" data-i18n="latitude">Latitude</div><div class="v" id="ptLat">—</div></div>
+        <div class="coord"><div class="k" data-i18n="longitude">Longitude</div><div class="v" id="ptLon">—</div></div>
       </div>
-      <label class="fieldlabel">Altitude</label>
-      <div class="field"><input type="number" id="alt" value="10" step="1"><span class="u">metres</span></div>
+      <label class="fieldlabel" data-i18n="altitude">Altitude</label>
+      <div class="field"><input type="number" id="alt" value="10" step="1"><span class="u" data-i18n="metres">metres</span></div>
       <div class="row" style="margin-top:13px">
-        <button id="btnInject" class="primary grow" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>Inject once</button>
+        <button id="btnInject" class="primary grow" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg><span data-i18n="injectOnce">Inject once</span></button>
         <button id="btnStream" disabled>Stream</button>
       </div>
     </div>
 
     <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="5.5" r="2.5"/><path d="M8 18.5h6a4 4 0 0 0 4-4V8"/></svg>Track injection</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="5.5" r="2.5"/><path d="M8 18.5h6a4 4 0 0 0 4-4V8"/></svg><span data-i18n="track">Track injection</span></h2>
       <div class="seg" id="clickMode">
-        <button data-m="point" class="sel">Point mode</button>
-        <button data-m="track">Add waypoints</button>
+        <button data-m="point" class="sel" data-i18n="pointMode">Point mode</button>
+        <button data-m="track" data-i18n="addWaypoints">Add waypoints</button>
       </div>
       <div class="row" style="margin-top:11px">
-        <div class="field grow"><span class="u">Speed</span><input type="number" id="speed" value="12" step="1"><span class="u">m/s</span></div>
-        <div class="field grow"><span class="u">Every</span><input type="number" id="interval" value="1" step="0.5"><span class="u">s</span></div>
+        <div class="field grow"><span class="u" data-i18n="speed">Speed</span><input type="number" id="speed" value="12" step="1"><span class="u">m/s</span></div>
+        <div class="field grow"><span class="u" data-i18n="every">Every</span><input type="number" id="interval" value="1" step="0.5"><span class="u" data-i18n="sec">s</span></div>
       </div>
       <div class="row" style="margin-top:9px">
-        <button id="btnPlay" class="primary grow" disabled><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"/></svg>Play track</button>
-        <button id="btnStop" disabled>Stop</button>
-        <button id="btnClear">Clear</button>
+        <button id="btnPlay" class="primary grow" disabled><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"/></svg><span data-i18n="playTrack">Play track</span></button>
+        <button id="btnStop" data-i18n="stop" disabled>Stop</button>
+        <button id="btnClear" data-i18n="clear">Clear</button>
       </div>
-      <label class="opt"><span class="t">Loop track</span><input type="checkbox" class="sw" id="loop"></label>
+      <label class="opt"><span class="t" data-i18n="loopTrack">Loop track</span><input type="checkbox" class="sw" id="loop"></label>
       <div class="hint" id="wpInfo">0 waypoints</div>
     </div>
 
     <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>Encoding</h2>
-      <label class="opt"><span class="t">China WGS-84 → GCJ-02 shift<small>Offset coordinates inside China</small></span><input type="checkbox" class="sw" id="gcj"></label>
-      <label class="opt"><span class="t">Append NMEA *checksum<small>The original app omits it</small></span><input type="checkbox" class="sw" id="cksum"></label>
-      <label class="opt"><span class="t">CRLF between sentences<small>The original app omits it</small></span><input type="checkbox" class="sw" id="crlf"></label>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg><span data-i18n="encoding">Encoding</span></h2>
+      <label class="opt"><span class="t"><span data-i18n="gcjT">China WGS-84 → GCJ-02 shift</span><small data-i18n="gcjS">Offset coordinates inside China</small></span><input type="checkbox" class="sw" id="gcj"></label>
+      <label class="opt"><span class="t"><span data-i18n="cksumT">Append NMEA *checksum</span><small data-i18n="cksumS">The original app omits it</small></span><input type="checkbox" class="sw" id="cksum"></label>
+      <label class="opt"><span class="t"><span data-i18n="crlfT">CRLF between sentences</span><small data-i18n="crlfS">The original app omits it</small></span><input type="checkbox" class="sw" id="crlf"></label>
     </div>
 
     <div class="card">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>Wire log</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg><span data-i18n="wireLog">Wire log</span></h2>
       <div id="log"></div>
-      <div class="row" style="margin-top:10px"><button id="btnClearLog" class="grow">Clear log</button></div>
+      <div class="row" style="margin-top:10px"><button id="btnClearLog" class="grow" data-i18n="clearLog">Clear log</button></div>
     </div>
-    <p class="foot">Reverse-engineered from the delisted "HHJ" iOS app. Use only with hardware you own and are authorised to test.</p>
+    <p class="foot" data-i18n="footer">Reverse-engineered from the delisted "HHJ" iOS app. Use only with hardware you own and are authorised to test.</p>
   </div>
   <div id="mapwrap">
     <div id="map"></div>
@@ -220,11 +231,22 @@
       <div class="searchrow">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
-        <input id="q" type="text" placeholder="Search an address or place…" autocomplete="off" spellcheck="false">
-        <button id="btnGo" class="primary">Go</button>
+        <input id="q" type="text" data-i18n-ph="searchPh" placeholder="Search an address or place…" autocomplete="off" spellcheck="false">
+        <button id="btnGo" class="primary" data-i18n="searchGo">Search</button>
       </div>
       <div id="results"></div>
     </div>
+  </div>
+</div>
+
+<div id="manualModal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <header>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <h3 data-i18n="manualTitle">HHJ — User manual</h3>
+      <button class="close" id="btnManualClose" aria-label="Close">&#10005;</button>
+    </header>
+    <div class="body" id="manualBody"></div>
   </div>
 </div>
 
@@ -240,6 +262,213 @@ const DATA_SERVICE = "0000fbb2-0000-1000-8000-00805f8c12ab";
 const LOCATION     = "000032e1-0000-1000-8000-00805f8a12fb"; // write w/o response
 const SECRET_KEY   = "dsfds123";
 const SUCCESS      = "authSuc";
+
+/* ---------- i18n (EN / 中文 / 日本語) ---------- */
+const I18N = {
+  en:{
+    subtitle:"Search or click the map to place a point, then inject it — once or as a moving track — to the HHJ gadget over Web Bluetooth.",
+    manualBtn:"Manual", manualTitle:"HHJ — User manual",
+    device:"Device", connect:"Connect", disconnect:"Disconnect",
+    showAll:"Show all devices", showAllSub:"Bypass the AAAAA / br29 name filter",
+    link:"Link", auth:"Auth", deviceLbl:"Device",
+    st_disconnected:"disconnected", st_connected:"connected", st_waiting:"waiting…", st_noack:"no ack",
+    browserHint:"Needs <b>Chrome</b> or <b>Edge</b>. Serve over <b>https://</b> or open as a local <b>file://</b>.",
+    injPoint:"Injection point", latitude:"Latitude", longitude:"Longitude", altitude:"Altitude", metres:"metres",
+    injectOnce:"Inject once", stream:"Stream", stopStream:"Stop stream",
+    track:"Track injection", pointMode:"Point mode", addWaypoints:"Add waypoints",
+    speed:"Speed", every:"Every", sec:"s", playTrack:"Play track", stop:"Stop", clear:"Clear",
+    loopTrack:"Loop track", waypoints:"%n waypoints",
+    encoding:"Encoding",
+    gcjT:"China WGS-84 → GCJ-02 shift", gcjS:"Offset coordinates inside China",
+    cksumT:"Append NMEA *checksum", cksumS:"The original app omits it",
+    crlfT:"CRLF between sentences", crlfS:"The original app omits it",
+    wireLog:"Wire log", clearLog:"Clear log",
+    footer:'Reverse-engineered from the delisted "HHJ" iOS app. Use only with hardware you own and are authorised to test.',
+    searchPh:"Search an address or place…", searchGo:"Search",
+    searching:"Searching…", noResults:"No results.", searchFail:"Search failed: %m (needs internet)",
+    manual:`<h4>Overview</h4>
+<p>The <b>HHJ 尾插</b> ("tail-plug") adapter changes an iPhone's GPS location quickly and precisely. Typical uses include unlocking region-restricted Apple Watch features (e.g. sleep-apnea and hypertension notifications) and other region-locked functionality.</p>
+<h4>Software</h4>
+<p>Original iOS app: <b>HHJ</b> on the App Store (App ID <code>6746925930</code>). This web tool re-implements the same Bluetooth connection and location injection in the browser.</p>
+<h4>Getting connected</h4>
+<ol>
+<li>Plug the adapter into the iPhone and open the HHJ app.</li>
+<li>Tap the Bluetooth icon in the right-side menu.</li>
+<li>Choose <b>“AAAAA”</b> from the device list. On success it shows <span class="zh">“设备认证成功”</span> (device authenticated).</li>
+</ol>
+<h4>App layout</h4>
+<ul>
+<li><b>Left button</b> — shows the current location (the modified one, if changed).</li>
+<li><b>Bluetooth</b> — connect / disconnect the device.</li>
+<li><b>Settings</b> — currently non-functional.</li>
+<li><b>Favourites (★)</b> — save locations for quick access.</li>
+<li><b>Lat / Lon</b> — enter coordinates manually.</li>
+<li><b>Altitude</b> — set elevation manually.</li>
+<li><b>Search</b> — find a place by name.</li>
+</ul>
+<ul>
+<li><b>Blue dot</b> — current GPS position.</li>
+<li><b>Red pin</b> — the location sent to the device.</li>
+<li><b>Black crosshair</b> — the point about to be selected.</li>
+</ul>
+<h4>Changing location</h4>
+<p><b>Under ~10 km:</b> drag the map so the crosshair sits on your target, then tap <span class="zh">“查看”</span> (View).</p>
+<p><b>Farther away — follow this order exactly:</b></p>
+<ol>
+<li>Search for the location.</li>
+<li>Confirm the position is aligned.</li>
+<li>Turn on Aeroplane mode.</li>
+<li>Turn off Location Services.</li>
+<li>Wait 6–10 seconds.</li>
+<li>Turn Location Services back on.</li>
+<li>Turn off Aeroplane mode.</li>
+</ol>
+<h4>Resetting</h4>
+<p>To restore the real location, unplug the adapter and repeat steps 3–5 (Aeroplane mode on → Location Services off → wait).</p>
+<p class="src">Manual adapted from <a href="https://www.wenziwanka.com/other/232.html" target="_blank" rel="noopener">wenziwanka.com/other/232.html</a>. Use only with hardware you own and are authorised to test.</p>`
+  },
+  zh:{
+    subtitle:"搜索或点击地图放置一个点，然后通过 Web 蓝牙将其注入 HHJ 设备——单次或作为移动轨迹。",
+    manualBtn:"使用手册", manualTitle:"HHJ — 使用手册",
+    device:"设备", connect:"连接", disconnect:"断开",
+    showAll:"显示所有设备", showAllSub:"绕过 AAAAA / br29 名称过滤",
+    link:"连接", auth:"认证", deviceLbl:"设备",
+    st_disconnected:"未连接", st_connected:"已连接", st_waiting:"等待中…", st_noack:"无应答",
+    browserHint:"需要 <b>Chrome</b> 或 <b>Edge</b>。通过 <b>https://</b> 提供，或作为本地 <b>file://</b> 打开。",
+    injPoint:"注入点", latitude:"纬度", longitude:"经度", altitude:"海拔", metres:"米",
+    injectOnce:"注入一次", stream:"持续发送", stopStream:"停止发送",
+    track:"轨迹注入", pointMode:"点模式", addWaypoints:"添加航点",
+    speed:"速度", every:"每", sec:"秒", playTrack:"播放轨迹", stop:"停止", clear:"清除",
+    loopTrack:"循环轨迹", waypoints:"%n 个航点",
+    encoding:"编码",
+    gcjT:"中国 WGS-84 → GCJ-02 偏移", gcjS:"在中国境内偏移坐标",
+    cksumT:"追加 NMEA *校验和", cksumS:"原应用不添加",
+    crlfT:"语句间加 CRLF", crlfS:"原应用不添加",
+    wireLog:"通信日志", clearLog:"清除日志",
+    footer:'逆向自已下架的 “HHJ” iOS 应用。仅可用于你拥有并获授权测试的硬件。',
+    searchPh:"搜索地址或地点…", searchGo:"搜索",
+    searching:"搜索中…", noResults:"无结果。", searchFail:"搜索失败：%m（需要联网）",
+    manual:`<h4>概述</h4>
+<p><b>HHJ 尾插</b>可快速、精确地更改 iPhone 的 GPS 位置。常见用途包括解锁受地区限制的 Apple Watch 功能（如睡眠呼吸暂停、高血压通知）以及其他地区锁定功能。</p>
+<h4>软件</h4>
+<p>原版 iOS 应用：App Store 中的 <b>HHJ</b>（App ID <code>6746925930</code>）。本网页工具在浏览器中重新实现了相同的蓝牙连接与位置注入。</p>
+<h4>连接步骤</h4>
+<ol>
+<li>将尾插插入 iPhone，打开 HHJ 应用。</li>
+<li>点击右侧菜单中的蓝牙图标。</li>
+<li>在设备列表中选择 <b>“AAAAA”</b>。连接成功会显示“设备认证成功”。</li>
+</ol>
+<h4>界面说明</h4>
+<ul>
+<li><b>左侧按钮</b> — 显示当前位置（若已修改则显示修改后的位置）。</li>
+<li><b>蓝牙</b> — 连接 / 断开设备。</li>
+<li><b>设置</b> — 暂无功能。</li>
+<li><b>收藏（★）</b> — 保存位置以便快速调用。</li>
+<li><b>经纬度</b> — 手动输入坐标。</li>
+<li><b>海拔</b> — 手动调整高度。</li>
+<li><b>搜索</b> — 按名称查找地点。</li>
+</ul>
+<ul>
+<li><b>蓝点</b> — 当前 GPS 位置。</li>
+<li><b>红色图钉</b> — 发送到设备的位置。</li>
+<li><b>黑色十字</b> — 即将选择的点。</li>
+</ul>
+<h4>修改位置</h4>
+<p><b>10 公里以内：</b>拖动地图使十字对准目标，然后点击“查看”。</p>
+<p><b>较远距离——请严格按此顺序：</b></p>
+<ol>
+<li>搜索该位置。</li>
+<li>确认位置已对准。</li>
+<li>开启飞行模式。</li>
+<li>关闭定位服务。</li>
+<li>等待 6–10 秒。</li>
+<li>重新开启定位服务。</li>
+<li>关闭飞行模式。</li>
+</ol>
+<h4>还原</h4>
+<p>若要恢复真实位置，拔出尾插并重复上面的第 3–5 步（开飞行模式 → 关定位服务 → 等待）。</p>
+<p class="src">手册整理自 <a href="https://www.wenziwanka.com/other/232.html" target="_blank" rel="noopener">wenziwanka.com/other/232.html</a>。仅可用于你拥有并获授权测试的硬件。</p>`
+  },
+  ja:{
+    subtitle:"住所を検索するか地図をクリックして地点を置き、Web Bluetooth 経由で HHJ デバイスに注入します（単発または移動トラック）。",
+    manualBtn:"マニュアル", manualTitle:"HHJ — 取扱説明書",
+    device:"デバイス", connect:"接続", disconnect:"切断",
+    showAll:"すべてのデバイスを表示", showAllSub:"AAAAA / br29 の名前フィルタを無視",
+    link:"リンク", auth:"認証", deviceLbl:"デバイス",
+    st_disconnected:"未接続", st_connected:"接続済み", st_waiting:"待機中…", st_noack:"応答なし",
+    browserHint:"<b>Chrome</b> または <b>Edge</b> が必要です。<b>https://</b> で配信するか、ローカルの <b>file://</b> で開いてください。",
+    injPoint:"注入地点", latitude:"緯度", longitude:"経度", altitude:"高度", metres:"メートル",
+    injectOnce:"1回注入", stream:"連続送信", stopStream:"送信停止",
+    track:"トラック注入", pointMode:"ポイント", addWaypoints:"経由点を追加",
+    speed:"速度", every:"間隔", sec:"秒", playTrack:"トラック再生", stop:"停止", clear:"クリア",
+    loopTrack:"トラックをループ", waypoints:"経由点 %n 個",
+    encoding:"エンコード",
+    gcjT:"中国 WGS-84 → GCJ-02 補正", gcjS:"中国国内で座標をずらす",
+    cksumT:"NMEA *チェックサムを付加", cksumS:"元アプリは付けません",
+    crlfT:"センテンス間に CRLF", crlfS:"元アプリは付けません",
+    wireLog:"通信ログ", clearLog:"ログをクリア",
+    footer:"配信終了した「HHJ」iOS アプリを解析。所有し、テストを許可されたハードウェアでのみ使用してください。",
+    searchPh:"住所や場所を検索…", searchGo:"検索",
+    searching:"検索中…", noResults:"結果がありません。", searchFail:"検索に失敗：%m（インターネットが必要）",
+    manual:`<h4>概要</h4>
+<p><b>HHJ 尾插</b>（テールプラグ）アダプタは、iPhone の GPS 位置を素早く正確に変更します。地域制限された Apple Watch 機能（睡眠時無呼吸・高血圧通知など）や、地域ロックされた機能の解除に使われます。</p>
+<h4>ソフトウェア</h4>
+<p>オリジナル iOS アプリ：App Store の <b>HHJ</b>（App ID <code>6746925930</code>）。本ウェブツールは同じ Bluetooth 接続と位置注入をブラウザで再実装したものです。</p>
+<h4>接続手順</h4>
+<ol>
+<li>アダプタを iPhone に挿し、HHJ アプリを開きます。</li>
+<li>右側メニューの Bluetooth アイコンをタップします。</li>
+<li>デバイス一覧から <b>「AAAAA」</b> を選びます。成功すると「设备认证成功（認証成功）」と表示されます。</li>
+</ol>
+<h4>画面の説明</h4>
+<ul>
+<li><b>左のボタン</b> — 現在地を表示（変更済みなら変更後の位置）。</li>
+<li><b>Bluetooth</b> — デバイスの接続 / 切断。</li>
+<li><b>設定</b> — 現在は機能しません。</li>
+<li><b>お気に入り（★）</b> — 位置を保存してすぐ呼び出し。</li>
+<li><b>緯度・経度</b> — 座標を手動入力。</li>
+<li><b>高度</b> — 高度を手動調整。</li>
+<li><b>検索</b> — 名前で場所を検索。</li>
+</ul>
+<ul>
+<li><b>青い点</b> — 現在の GPS 位置。</li>
+<li><b>赤いピン</b> — デバイスに送る位置。</li>
+<li><b>黒い十字</b> — これから選択する地点。</li>
+</ul>
+<h4>位置の変更</h4>
+<p><b>約 10km 以内：</b>地図をドラッグして十字を目標に合わせ、「查看（表示）」をタップします。</p>
+<p><b>遠方の場合 — 必ずこの順序で：</b></p>
+<ol>
+<li>場所を検索します。</li>
+<li>位置が合っているか確認します。</li>
+<li>機内モードをオンにします。</li>
+<li>位置情報サービスをオフにします。</li>
+<li>6〜10 秒待ちます。</li>
+<li>位置情報サービスを再びオンにします。</li>
+<li>機内モードをオフにします。</li>
+</ol>
+<h4>リセット</h4>
+<p>実際の位置に戻すには、アダプタを抜き、手順 3〜5（機内モードオン → 位置情報オフ → 待機）を繰り返します。</p>
+<p class="src">マニュアルは <a href="https://www.wenziwanka.com/other/232.html" target="_blank" rel="noopener">wenziwanka.com/other/232.html</a> を基に作成。所有し、テストを許可されたハードウェアでのみ使用してください。</p>`
+  }
+};
+let LANG="en";
+function t(k){ const d=I18N[LANG]||I18N.en; return (k in d)?d[k]:((k in I18N.en)?I18N.en[k]:k); }
+function updateWp(){ const el=document.getElementById("wpInfo"); if(el) el.textContent=t("waypoints").replace("%n",waypoints.length); }
+function refreshStreamLabel(){ const b=document.getElementById("btnStream"); if(b) b.textContent=streamTimer?t("stopStream"):t("stream"); }
+function applyLang(lang){
+  if(!I18N[lang]) lang="en";
+  LANG=lang;
+  try{ localStorage.setItem("hhj_lang",lang); }catch(e){}
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-html]").forEach(el=>el.innerHTML=t(el.dataset.i18nHtml));
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>el.setAttribute("placeholder",t(el.dataset.i18nPh)));
+  document.querySelectorAll("[data-k]").forEach(el=>el.textContent=t(el.dataset.k));
+  document.getElementById("manualBody").innerHTML=t("manual");
+  document.querySelectorAll("#langSel button").forEach(b=>b.classList.toggle("sel",b.dataset.l===lang));
+  updateWp(); refreshStreamLabel();
+}
 
 /* ---------- Coordinate + NMEA encoding (see hhj_protocol.md) ---------- */
 function outOfChina(lat, lon){
@@ -298,10 +527,10 @@ function buildAuth(){ return Math.floor(Date.now()/1000)+"_"+SECRET_KEY; }
 /* ---------- Logging ---------- */
 const logEl=document.getElementById("log");
 function log(kind,msg){
-  const t=new Date().toLocaleTimeString();
+  const ts=new Date().toLocaleTimeString();
   const span=document.createElement("span");
   span.className=kind;
-  span.textContent=`[${t}] ${msg}\n`;
+  span.textContent=`[${ts}] ${msg}\n`;
   logEl.appendChild(span); logEl.scrollTop=logEl.scrollHeight;
 }
 
@@ -309,7 +538,8 @@ function log(kind,msg){
 let device=null, server=null, locChar=null, authWrite=null, authNotify=null, authed=false;
 const enc=new TextEncoder(), dec=new TextDecoder();
 
-function setPill(id,cls,txt){const e=document.getElementById(id);e.className="pill "+cls;e.textContent=txt;}
+function setPill(id,cls,txt){const e=document.getElementById(id);e.className="pill "+cls;e.textContent=txt;delete e.dataset.k;}
+function setPillK(id,cls,key){const e=document.getElementById(id);e.className="pill "+cls;e.dataset.k=key;e.textContent=t(key);}
 function refreshButtons(){
   const linked=!!locChar;
   document.getElementById("btnDisconnect").disabled=!device;
@@ -331,7 +561,7 @@ async function connect(){
     document.getElementById("stName").textContent=device.name||device.id;
     log("sys","Connecting GATT…");
     server=await device.gatt.connect();
-    setPill("stLink","good","connected");
+    setPillK("stLink","good","st_connected");
 
     const aSvc=await server.getPrimaryService(AUTH_SERVICE);
     authWrite=await aSvc.getCharacteristic(AUTH_WRITE);
@@ -347,8 +577,8 @@ async function connect(){
     const a=buildAuth();
     log("tx","auth → "+a);
     await authWrite.writeValueWithResponse(enc.encode(a));
-    setPill("stAuth","off","waiting…");
-    setTimeout(()=>{ if(!authed){ setPill("stAuth","off","no ack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
+    setPillK("stAuth","off","st_waiting");
+    setTimeout(()=>{ if(!authed){ setPillK("stAuth","off","st_noack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
 
     refreshButtons();
     log("sys","Ready. Location characteristic acquired.");
@@ -370,7 +600,7 @@ function onDisconnected(){ log("sys","Device disconnected."); cleanup(); }
 async function cleanup(){
   stopStream(); stopTrack();
   authed=false; locChar=null; authWrite=null; authNotify=null; server=null; device=null;
-  setPill("stLink","off","disconnected"); setPill("stAuth","off","—");
+  setPillK("stLink","off","st_disconnected"); setPill("stAuth","off","—");
   document.getElementById("stName").textContent="—";
   refreshButtons();
 }
@@ -414,11 +644,11 @@ function updatePointReadout(){
 }
 function addWaypoint(latlng){
   waypoints.push([latlng.lat,latlng.lng]);
-  const m=L.circleMarker(latlng,{radius:5,color:"#37c",fillColor:"#6cf",fillOpacity:1}).addTo(map);
+  const m=L.circleMarker(latlng,{radius:5,color:"#4f8cff",fillColor:"#8ab4ff",fillOpacity:1}).addTo(map);
   wpMarkers.push(m);
-  if(!trackLine){ trackLine=L.polyline(waypoints,{color:"#4a86d8",weight:3}).addTo(map); }
+  if(!trackLine){ trackLine=L.polyline(waypoints,{color:"#4f8cff",weight:3}).addTo(map); }
   else trackLine.setLatLngs(waypoints);
-  document.getElementById("wpInfo").textContent=waypoints.length+" waypoints";
+  updateWp();
   refreshButtons();
 }
 map.on("click",e=>{ if(clickMode==="point") setPoint(e.latlng); else addWaypoint(e.latlng); });
@@ -428,13 +658,13 @@ const q=document.getElementById("q"), resultsEl=document.getElementById("results
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
 async function geocode(){
   const query=q.value.trim(); if(!query) return;
-  resultsEl.className="show"; resultsEl.innerHTML='<div class="empty">Searching…</div>';
+  resultsEl.className="show"; resultsEl.innerHTML='<div class="empty">'+t("searching")+'</div>';
   try{
     const url="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=0&q="+encodeURIComponent(query);
     const res=await fetch(url,{headers:{Accept:"application/json"}});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const data=await res.json();
-    if(!data.length){ resultsEl.innerHTML='<div class="empty">No results.</div>'; return; }
+    if(!data.length){ resultsEl.innerHTML='<div class="empty">'+t("noResults")+'</div>'; return; }
     resultsEl.innerHTML="";
     data.forEach(item=>{
       const div=document.createElement("div"); div.className="r";
@@ -443,7 +673,7 @@ async function geocode(){
       div.onclick=()=>pick(+item.lat,+item.lon,item.display_name);
       resultsEl.appendChild(div);
     });
-  }catch(e){ resultsEl.innerHTML='<div class="empty">Search failed: '+esc(e.message)+' (needs internet)</div>'; }
+  }catch(e){ resultsEl.innerHTML='<div class="empty">'+t("searchFail").replace("%m",esc(e.message))+'</div>'; }
 }
 function pick(lat,lon,name){
   resultsEl.className=""; q.value=name.split(", ").slice(0,3).join(", ");
@@ -469,13 +699,13 @@ document.getElementById("btnInject").onclick=()=>{
 let streamTimer=null;
 function stopStream(){ if(streamTimer){clearInterval(streamTimer);streamTimer=null;}
   document.getElementById("btnStream").classList.remove("on");
-  document.getElementById("btnStream").textContent="Stream"; }
+  refreshStreamLabel(); }
 document.getElementById("btnStream").onclick=()=>{
   if(streamTimer){ stopStream(); return; }
   if(!point){ log("er","Place a point first."); return; }
   const ms=Math.max(200,(+document.getElementById("interval").value||1)*1000);
   streamTimer=setInterval(()=>writeLocation(point[0],point[1],+document.getElementById("alt").value),ms);
-  const b=document.getElementById("btnStream"); b.classList.add("on"); b.textContent="Stop stream";
+  const b=document.getElementById("btnStream"); b.classList.add("on"); refreshStreamLabel();
   log("sys","Streaming current point every "+(ms/1000)+"s.");
 };
 
@@ -496,7 +726,7 @@ document.getElementById("btnClear").onclick=()=>{
   stopTrack(); waypoints=[]; wpMarkers.forEach(m=>map.removeLayer(m)); wpMarkers=[];
   if(trackLine){map.removeLayer(trackLine);trackLine=null;}
   if(moveMarker){map.removeLayer(moveMarker);moveMarker=null;}
-  document.getElementById("wpInfo").textContent="0 waypoints"; refreshButtons();
+  updateWp(); refreshButtons();
 };
 document.getElementById("btnClearLog").onclick=()=>logEl.textContent="";
 document.getElementById("btnPlay").onclick=async()=>{
@@ -530,9 +760,23 @@ document.getElementById("btnPlay").onclick=async()=>{
   stopTrack();
 };
 
-/* ---------- Wiring ---------- */
+/* ---------- Manual modal ---------- */
+const _modal=document.getElementById("manualModal");
+document.getElementById("btnManual").onclick=()=>_modal.classList.add("show");
+document.getElementById("btnManualClose").onclick=()=>_modal.classList.remove("show");
+_modal.addEventListener("click",e=>{ if(e.target===_modal) _modal.classList.remove("show"); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") _modal.classList.remove("show"); });
+
+/* ---------- Wiring + language ---------- */
 document.getElementById("btnConnect").onclick=connect;
 document.getElementById("btnDisconnect").onclick=disconnect;
+document.querySelectorAll("#langSel button").forEach(b=>b.onclick=()=>applyLang(b.dataset.l));
+
+let _saved=null; try{ _saved=localStorage.getItem("hhj_lang"); }catch(e){}
+const _nav=(navigator.language||"en").toLowerCase();
+const _auto=_nav.startsWith("zh")?"zh":_nav.startsWith("ja")?"ja":"en";
+applyLang(_saved||_auto);
+
 if(!navigator.bluetooth) log("er","This browser has no Web Bluetooth. Use Chrome or Edge.");
 else log("sys","Ready. Click ‘Connect’ and pick your HHJ gadget (name ‘AAAAA’ or containing ‘br29’).");
 </script>
