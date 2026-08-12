@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HHJ Web-BLE GPS Injector</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+  :root{ --bg:#0f1420; --panel:#171e2e; --panel2:#1e2740; --line:#2b3550;
+         --txt:#e7ecf5; --mut:#8b97b3; --accent:#37c;  --ok:#2fbf71; --warn:#e0a52b; --err:#e5544b; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+            background:var(--bg);color:var(--txt)}
+  #app{display:grid;grid-template-columns:372px 1fr;height:100%}
+  #side{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:16px}
+  #mapwrap{position:relative;height:100%}
+  #map{position:absolute;inset:0}
+  h1{font-size:15px;margin:0 0 2px;letter-spacing:.3px}
+  .sub{color:var(--mut);font-size:12px;margin:0 0 12px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:0 0 10px}
+  button{font:inherit;color:var(--txt);background:#243050;border:1px solid var(--line);
+         border-radius:8px;padding:8px 12px;cursor:pointer;transition:.12s}
+  button:hover:not(:disabled){background:#2c3a63}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);border-color:#4a86d8}
+  button.primary:hover:not(:disabled){background:#4a86d8}
+  button.danger{background:#5a2b30;border-color:#7a3a41}
+  button.on{background:var(--ok);border-color:#3fd784;color:#052}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .row + .row{margin-top:8px}
+  label.chk{display:flex;gap:7px;align-items:center;color:var(--mut);cursor:pointer;user-select:none}
+  input[type=number]{width:78px;background:#0e1420;border:1px solid var(--line);color:var(--txt);
+                     border-radius:6px;padding:6px}
+  .grid2{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;color:var(--mut)}
+  .val{color:var(--txt);font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+  .pill.off{background:#33261a;color:var(--warn)}
+  .pill.good{background:#123528;color:var(--ok)}
+  .pill.bad{background:#3a1e1e;color:var(--err)}
+  .mode{display:flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .mode button{border:0;border-radius:0;flex:1;background:#1a2136}
+  .mode button.sel{background:var(--accent)}
+  #log{font:11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b0f18;border:1px solid var(--line);
+       border-radius:8px;padding:8px;height:170px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+  #log .tx{color:#7fd4ff}#log .rx{color:#a6e3a1}#log .sys{color:var(--mut)}#log .er{color:#f0a0a0}
+  .hint{color:var(--mut);font-size:11.5px;margin-top:6px}
+  a{color:#6cf}
+  /* ---- header ---- */
+  .brand{display:flex;align-items:center;gap:9px;margin:0 0 2px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);
+              box-shadow:0 0 0 4px rgba(51,119,204,.18)}
+  .card{box-shadow:0 1px 0 rgba(255,255,255,.02),0 6px 18px rgba(0,0,0,.18)}
+  /* ---- search overlay ---- */
+  #searchbar{position:absolute;z-index:1000;top:14px;left:50%;transform:translateX(-50%);
+             width:min(460px,calc(100% - 92px));font-size:13.5px}
+  .searchrow{display:flex;align-items:center;gap:8px;background:rgba(23,30,46,.94);
+             border:1px solid var(--line);border-radius:11px;padding:6px 6px 6px 12px;
+             box-shadow:0 8px 30px rgba(0,0,0,.4);backdrop-filter:blur(8px)}
+  .searchrow svg{flex:0 0 auto;color:var(--mut)}
+  #q{flex:1;background:transparent;border:0;color:var(--txt);font:inherit;outline:none;min-width:0}
+  #q::placeholder{color:var(--mut)}
+  #btnGo{padding:7px 14px}
+  #results{margin-top:7px;background:rgba(20,26,40,.98);border:1px solid var(--line);border-radius:11px;
+           overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.4);display:none}
+  #results.show{display:block}
+  #results .r{padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--line)}
+  #results .r:last-child{border-bottom:0}
+  #results .r:hover{background:var(--panel2)}
+  #results .r .t{color:var(--txt)}
+  #results .r .s{color:var(--mut);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #results .empty{padding:11px 13px;color:var(--mut)}
+  @media(max-width:720px){#app{grid-template-columns:1fr;grid-template-rows:1fr 46vh}
+    #side{order:2;border-right:0;border-top:1px solid var(--line)}#mapwrap{order:1}
+    #searchbar{width:calc(100% - 24px)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <div class="brand"><span class="dot"></span><h1>HHJ Web-BLE GPS Injector</h1></div>
+    <p class="sub">Search or click the map to place a point, then inject it — once or as a moving track — to the HHJ gadget over Bluetooth.</p>
+
+    <div class="card">
+      <h2>Device</h2>
+      <div class="row">
+        <button id="btnConnect" class="primary">Connect</button>
+        <button id="btnDisconnect" disabled>Disconnect</button>
+      </div>
+      <label class="chk" style="margin-top:8px"><input type="checkbox" id="chkAll"> Show all devices in picker</label>
+      <div class="grid2" style="margin-top:10px">
+        <span>Link</span><span><span id="stLink" class="pill off">disconnected</span></span>
+        <span>Auth</span><span><span id="stAuth" class="pill off">—</span></span>
+        <span>Device</span><span class="val" id="stName">—</span>
+      </div>
+      <div class="hint">Needs Chrome or Edge (desktop/Android). Open over <b>https://</b> or as a local <b>file://</b>.</div>
+    </div>
+
+    <div class="card">
+      <h2>Injection point</h2>
+      <div class="grid2">
+        <span>Lat</span><span class="val" id="ptLat">—</span>
+        <span>Lon</span><span class="val" id="ptLon">—</span>
+        <span>Alt (m)</span><span><input type="number" id="alt" value="10" step="1"></span>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="btnInject" class="primary" disabled>Inject once</button>
+        <button id="btnStream" disabled>Stream point</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Track injection</h2>
+      <div class="mode" id="clickMode">
+        <button data-m="point" class="sel">Point mode</button>
+        <button data-m="track">Add waypoints</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="btnPlay" disabled>Play track</button>
+        <button id="btnStop" disabled>Stop</button>
+        <button id="btnClear">Clear</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="chk">Speed <input type="number" id="speed" value="12" step="1"> m/s</label>
+        <label class="chk">Every <input type="number" id="interval" value="1" step="0.5"> s</label>
+      </div>
+      <label class="chk" style="margin-top:8px"><input type="checkbox" id="loop"> Loop track</label>
+      <div class="hint" id="wpInfo">0 waypoints</div>
+    </div>
+
+    <div class="card">
+      <h2>Encoding</h2>
+      <label class="chk"><input type="checkbox" id="gcj"> Apply China WGS-84 → GCJ-02 shift (optional)</label>
+      <label class="chk" style="margin-top:8px"><input type="checkbox" id="cksum"> Append NMEA *checksum (app does not)</label>
+      <label class="chk" style="margin-top:8px"><input type="checkbox" id="crlf"> CRLF between sentences (app does not)</label>
+    </div>
+
+    <div class="card">
+      <h2>Wire log</h2>
+      <div id="log"></div>
+      <div class="row" style="margin-top:8px"><button id="btnClearLog">Clear log</button></div>
+    </div>
+    <p class="hint">Reverse-engineered from the delisted "HHJ" iOS app. Use only with hardware you own and are authorised to test.</p>
+  </div>
+  <div id="mapwrap">
+    <div id="map"></div>
+    <div id="searchbar">
+      <div class="searchrow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+        <input id="q" type="text" placeholder="Search an address or place…" autocomplete="off" spellcheck="false">
+        <button id="btnGo" class="primary">Go</button>
+      </div>
+      <div id="results"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+"use strict";
+
+/* ---------- Protocol constants (recovered from BlueService) ---------- */
+const AUTH_SERVICE = "0000faa1-0000-1000-8000-00805f8c12ab";
+const AUTH_WRITE   = "000021e1-0000-1000-8000-00805f8a12fb"; // write w/ response
+const AUTH_NOTIFY  = "000021e2-0000-1000-8000-00805f8a12fb"; // notify
+const DATA_SERVICE = "0000fbb2-0000-1000-8000-00805f8c12ab";
+const LOCATION     = "000032e1-0000-1000-8000-00805f8a12fb"; // write w/o response
+const SECRET_KEY   = "dsfds123";
+const SUCCESS      = "authSuc";
+
+/* ---------- Coordinate + NMEA encoding (see hhj_protocol.md) ---------- */
+function outOfChina(lat, lon){
+  return !(lon > 72.004 && lon < 137.8347 && lat > 0.8293 && lat < 55.8271);
+}
+function tLat(x,y){
+  let r=-100+2*x+3*y+0.2*y*y+0.1*x*y+0.2*Math.sqrt(Math.abs(x));
+  r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;
+  r+=(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3;
+  r+=(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3; return r;
+}
+function tLon(x,y){
+  let r=300+x+2*y+0.1*x*x+0.1*x*y+0.1*Math.sqrt(Math.abs(x));
+  r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;
+  r+=(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3;
+  r+=(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3; return r;
+}
+function wgs84ToGcj02(lat, lon){
+  if(outOfChina(lat,lon)) return [lat,lon];
+  const ee=0.00669342162296594323, a=6378137.0;
+  let dLat=tLat(lon-105,lat-35), dLon=tLon(lon-105,lat-35);
+  const rad=lat/180*Math.PI; let m=Math.sin(rad); m=1-ee*m*m; const sm=Math.sqrt(m);
+  dLat=(dLat*180)/((a*(1-ee))/(m*sm)*Math.PI);
+  dLon=(dLon*180)/(a/sm*Math.cos(rad)*Math.PI);
+  return [lat+dLat, lon+dLon];
+}
+// Reproduces FUN_100055960: "%02d%09.6f" then strip one leading '0'.
+function fmtCoord(v){
+  const deg=Math.trunc(v);
+  const minutes=Math.abs((v-deg)*60);
+  let s=String(Math.abs(deg)).padStart(2,"0")+minutes.toFixed(6).padStart(9,"0");
+  if(s.startsWith("0")) s=s.slice(1);
+  return s;
+}
+const p2=n=>String(n).padStart(2,"0");
+function nmeaChecksum(body){let c=0;for(const ch of body)c^=ch.charCodeAt(0);return c.toString(16).toUpperCase().padStart(2,"0");}
+
+function buildLocation(lat, lon, alt){
+  const useGcj=document.getElementById("gcj").checked;
+  const cks=document.getElementById("cksum").checked;
+  const crlf=document.getElementById("crlf").checked;
+  if(useGcj) [lat,lon]=wgs84ToGcj02(lat,lon);
+  const ns=lat>=0?"N":"S", ew=lon>=0?"E":"W";
+  const la=fmtCoord(lat), lo=fmtCoord(lon);
+  const d=new Date();
+  const utc=p2(d.getUTCHours())+p2(d.getUTCMinutes())+p2(d.getUTCSeconds())+".00";
+  const date=p2(d.getUTCDate())+p2(d.getUTCMonth()+1)+String(d.getUTCFullYear()).slice(2);
+  const gga="GPGGA,"+utc+","+la+","+ns+","+lo+","+ew+",1,09,0.6,"+(alt||0)+",M,-27.0,M,,";
+  const rmc="GPRMC,"+utc+",A,"+la+","+ns+","+lo+","+ew+",0.0,0.0,"+date+",0.0,E,A";
+  const s1=cks?("$"+gga+"*"+nmeaChecksum(gga)):("$"+gga);
+  const s2=cks?("$"+rmc+"*"+nmeaChecksum(rmc)):("$"+rmc);
+  return s1+(crlf?"\r\n":"")+s2+(crlf?"\r\n":"");
+}
+function buildAuth(){ return Math.floor(Date.now()/1000)+"_"+SECRET_KEY; }
+
+/* ---------- Logging ---------- */
+const logEl=document.getElementById("log");
+function log(kind,msg){
+  const t=new Date().toLocaleTimeString();
+  const span=document.createElement("span");
+  span.className=kind;
+  span.textContent=`[${t}] ${msg}\n`;
+  logEl.appendChild(span); logEl.scrollTop=logEl.scrollHeight;
+}
+
+/* ---------- BLE ---------- */
+let device=null, server=null, locChar=null, authWrite=null, authNotify=null, authed=false;
+const enc=new TextEncoder(), dec=new TextDecoder();
+
+function setPill(id,cls,txt){const e=document.getElementById(id);e.className="pill "+cls;e.textContent=txt;}
+function refreshButtons(){
+  const linked=!!locChar;
+  document.getElementById("btnDisconnect").disabled=!device;
+  document.getElementById("btnConnect").disabled=!!device;
+  document.getElementById("btnInject").disabled=!linked;
+  document.getElementById("btnStream").disabled=!linked;
+  document.getElementById("btnPlay").disabled=!linked||waypoints.length<2;
+}
+
+async function connect(){
+  if(!navigator.bluetooth){log("er","Web Bluetooth unavailable — use Chrome/Edge over https or file://.");return;}
+  try{
+    const opts={ optionalServices:[AUTH_SERVICE,DATA_SERVICE] };
+    if(document.getElementById("chkAll").checked){ opts.acceptAllDevices=true; }
+    else { opts.filters=[{name:"AAAAA"},{namePrefix:"br29"},{services:[AUTH_SERVICE]}]; }
+    log("sys","Requesting device…");
+    device=await navigator.bluetooth.requestDevice(opts);
+    device.addEventListener("gattserverdisconnected",onDisconnected);
+    document.getElementById("stName").textContent=device.name||device.id;
+    log("sys","Connecting GATT…");
+    server=await device.gatt.connect();
+    setPill("stLink","good","connected");
+
+    const aSvc=await server.getPrimaryService(AUTH_SERVICE);
+    authWrite=await aSvc.getCharacteristic(AUTH_WRITE);
+    authNotify=await aSvc.getCharacteristic(AUTH_NOTIFY);
+    await authNotify.startNotifications();
+    authNotify.addEventListener("characteristicvaluechanged",onNotify);
+
+    const dSvc=await server.getPrimaryService(DATA_SERVICE);
+    locChar=await dSvc.getCharacteristic(LOCATION);
+
+    // Handshake: "<unix_seconds>_dsfds123"
+    const a=buildAuth();
+    log("tx","auth → "+a);
+    await authWrite.writeValueWithResponse(enc.encode(a));
+    setPill("stAuth","off","waiting…");
+    setTimeout(()=>{ if(!authed){ setPill("stAuth","off","no ack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
+
+    refreshButtons();
+    log("sys","Ready. Location characteristic acquired.");
+  }catch(e){
+    log("er","Connect failed: "+e.message);
+    await cleanup();
+  }
+}
+function onNotify(ev){
+  const txt=dec.decode(ev.target.value).trim();
+  log("rx","notify ← "+JSON.stringify(txt));
+  if(txt===SUCCESS){ authed=true; setPill("stAuth","good","authSuc"); }
+}
+function onDisconnected(){ log("sys","Device disconnected."); cleanup(); }
+async function cleanup(){
+  stopStream(); stopTrack();
+  authed=false; locChar=null; authWrite=null; authNotify=null; server=null; device=null;
+  setPill("stLink","off","disconnected"); setPill("stAuth","off","—");
+  document.getElementById("stName").textContent="—";
+  refreshButtons();
+}
+async function disconnect(){ try{ if(device&&device.gatt.connected) device.gatt.disconnect(); }catch(e){} cleanup(); }
+
+let writing=false;
+async function writeLocation(lat,lon,alt){
+  if(!locChar) return;
+  const text=buildLocation(lat,lon,alt);
+  if(writing) return;             // drop if a write is still in flight (avoid GATT-busy)
+  writing=true;
+  try{
+    const bytes=enc.encode(text);
+    if(locChar.writeValueWithoutResponse) await locChar.writeValueWithoutResponse(bytes);
+    else await locChar.writeValue(bytes);
+    log("tx","loc → "+text.replace(/\r\n/g," "));
+  }catch(e){ log("er","write failed: "+e.message); }
+  finally{ writing=false; }
+}
+
+/* ---------- Map ---------- */
+const map=L.map("map").setView([31.2304,121.4737],13);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  maxZoom:19, attribution:"© OpenStreetMap contributors"}).addTo(map);
+
+let clickMode="point";
+let point=null, pointMarker=null;         // single injection point
+let waypoints=[], trackLine=null, wpMarkers=[], moveMarker=null;
+
+function setPoint(latlng){
+  point=[latlng.lat,latlng.lng];
+  if(!pointMarker){
+    pointMarker=L.marker(latlng,{draggable:true}).addTo(map);
+    pointMarker.on("drag",e=>{const p=e.target.getLatLng();point=[p.lat,p.lng];updatePointReadout();});
+  } else pointMarker.setLatLng(latlng);
+  updatePointReadout();
+}
+function updatePointReadout(){
+  document.getElementById("ptLat").textContent=point?point[0].toFixed(6):"—";
+  document.getElementById("ptLon").textContent=point?point[1].toFixed(6):"—";
+}
+function addWaypoint(latlng){
+  waypoints.push([latlng.lat,latlng.lng]);
+  const m=L.circleMarker(latlng,{radius:5,color:"#37c",fillColor:"#6cf",fillOpacity:1}).addTo(map);
+  wpMarkers.push(m);
+  if(!trackLine){ trackLine=L.polyline(waypoints,{color:"#4a86d8",weight:3}).addTo(map); }
+  else trackLine.setLatLngs(waypoints);
+  document.getElementById("wpInfo").textContent=waypoints.length+" waypoints";
+  refreshButtons();
+}
+map.on("click",e=>{ if(clickMode==="point") setPoint(e.latlng); else addWaypoint(e.latlng); });
+
+/* ---------- Address search (OSM Nominatim geocoder) ---------- */
+const q=document.getElementById("q"), resultsEl=document.getElementById("results");
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+async function geocode(){
+  const query=q.value.trim(); if(!query) return;
+  resultsEl.className="show"; resultsEl.innerHTML='<div class="empty">Searching…</div>';
+  try{
+    const url="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=0&q="+encodeURIComponent(query);
+    const res=await fetch(url,{headers:{Accept:"application/json"}});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    if(!data.length){ resultsEl.innerHTML='<div class="empty">No results.</div>'; return; }
+    resultsEl.innerHTML="";
+    data.forEach(item=>{
+      const div=document.createElement("div"); div.className="r";
+      const parts=item.display_name.split(", ");
+      div.innerHTML='<div class="t">'+esc(parts[0])+'</div><div class="s">'+esc(item.display_name)+'</div>';
+      div.onclick=()=>pick(+item.lat,+item.lon,item.display_name);
+      resultsEl.appendChild(div);
+    });
+  }catch(e){ resultsEl.innerHTML='<div class="empty">Search failed: '+esc(e.message)+' (needs internet)</div>'; }
+}
+function pick(lat,lon,name){
+  resultsEl.className=""; q.value=name.split(", ").slice(0,3).join(", ");
+  map.flyTo([lat,lon],16,{duration:.8});
+  if(clickMode==="point") setPoint({lat,lng:lon});
+  log("sys","Jumped to "+name.split(", ")[0]);
+}
+document.getElementById("btnGo").onclick=geocode;
+q.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();geocode();}
+  else if(e.key==="Escape"){resultsEl.className="";} });
+document.addEventListener("click",e=>{ if(!document.getElementById("searchbar").contains(e.target)) resultsEl.className=""; });
+
+document.querySelectorAll("#clickMode button").forEach(b=>{
+  b.onclick=()=>{ clickMode=b.dataset.m;
+    document.querySelectorAll("#clickMode button").forEach(x=>x.classList.toggle("sel",x===b)); };
+});
+
+/* ---------- Single point: inject / stream ---------- */
+document.getElementById("btnInject").onclick=()=>{
+  if(!point){ log("er","Place a point on the map first (Point mode)."); return; }
+  writeLocation(point[0],point[1],+document.getElementById("alt").value);
+};
+let streamTimer=null;
+function stopStream(){ if(streamTimer){clearInterval(streamTimer);streamTimer=null;}
+  document.getElementById("btnStream").classList.remove("on");
+  document.getElementById("btnStream").textContent="Stream point"; }
+document.getElementById("btnStream").onclick=()=>{
+  if(streamTimer){ stopStream(); return; }
+  if(!point){ log("er","Place a point first."); return; }
+  const ms=Math.max(200,(+document.getElementById("interval").value||1)*1000);
+  streamTimer=setInterval(()=>writeLocation(point[0],point[1],+document.getElementById("alt").value),ms);
+  const b=document.getElementById("btnStream"); b.classList.add("on"); b.textContent="Stop stream";
+  log("sys","Streaming current point every "+(ms/1000)+"s.");
+};
+
+/* ---------- Track playback ---------- */
+function haversine(a,b){
+  const R=6371000,r=Math.PI/180;
+  const dLat=(b[0]-a[0])*r,dLon=(b[1]-a[1])*r;
+  const s=Math.sin(dLat/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function interp(a,b,f){ return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f]; }
+let playing=false;
+function stopTrack(){ playing=false;
+  document.getElementById("btnStop").disabled=true;
+  document.getElementById("btnPlay").disabled=!(locChar&&waypoints.length>=2); }
+document.getElementById("btnStop").onclick=stopTrack;
+document.getElementById("btnClear").onclick=()=>{
+  stopTrack(); waypoints=[]; wpMarkers.forEach(m=>map.removeLayer(m)); wpMarkers=[];
+  if(trackLine){map.removeLayer(trackLine);trackLine=null;}
+  if(moveMarker){map.removeLayer(moveMarker);moveMarker=null;}
+  document.getElementById("wpInfo").textContent="0 waypoints"; refreshButtons();
+};
+document.getElementById("btnClearLog").onclick=()=>logEl.textContent="";
+document.getElementById("btnPlay").onclick=async()=>{
+  if(waypoints.length<2){ log("er","Add at least 2 waypoints (Add waypoints mode)."); return; }
+  const segs=[]; let total=0;
+  for(let i=0;i<waypoints.length-1;i++){const d=haversine(waypoints[i],waypoints[i+1]);segs.push(d);total+=d;}
+  function at(dist){ let d=dist;
+    for(let i=0;i<segs.length;i++){ if(d<=segs[i]||i===segs.length-1){const f=segs[i]>0?Math.min(d/segs[i],1):0;return interp(waypoints[i],waypoints[i+1],f);} d-=segs[i]; }
+    return waypoints[waypoints.length-1];
+  }
+  playing=true;
+  document.getElementById("btnStop").disabled=false;
+  document.getElementById("btnPlay").disabled=true;
+  const loop=document.getElementById("loop").checked;
+  let travelled=0;
+  if(!moveMarker) moveMarker=L.marker(waypoints[0]).addTo(map);
+  log("sys",`Playing track: ${total.toFixed(0)} m at ${document.getElementById("speed").value} m/s.`);
+  while(playing){
+    const interval=Math.max(0.2,+document.getElementById("interval").value||1);
+    const speed=Math.max(0,+document.getElementById("speed").value||0);
+    const p=at(travelled);
+    moveMarker.setLatLng(p);
+    await writeLocation(p[0],p[1],+document.getElementById("alt").value);
+    await new Promise(r=>setTimeout(r,interval*1000));
+    travelled+=speed*interval;
+    if(travelled>=total){
+      if(loop){ travelled=0; }
+      else { log("sys","Track finished."); break; }
+    }
+  }
+  stopTrack();
+};
+
+/* ---------- Wiring ---------- */
+document.getElementById("btnConnect").onclick=connect;
+document.getElementById("btnDisconnect").onclick=disconnect;
+if(!navigator.bluetooth) log("er","This browser has no Web Bluetooth. Use Chrome or Edge.");
+else log("sys","Ready. Click ‘Connect’ and pick your HHJ gadget (name ‘AAAAA’ or containing ‘br29’).");
+</script>
+</body>
+</html>
