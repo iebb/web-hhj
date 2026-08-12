@@ -75,6 +75,8 @@
   .field:focus-within{border-color:var(--accent)}
   .field input{flex:1;min-width:0;background:transparent;border:0;color:var(--txt);outline:none;font:600 13px var(--mono);padding:9px 0;font-variant-numeric:tabular-nums}
   .field .u{color:var(--faint);font-size:11.5px;white-space:nowrap;font-weight:500}
+  .field.num{flex:1;justify-content:center}
+  .field.num input{flex:0 0 auto;width:52px;text-align:center}
   /* switch (flat) */
   .opt{display:flex;align-items:center;gap:12px;padding:9px 0;cursor:pointer;user-select:none}
   .opt+.opt{border-top:1px solid var(--line)}
@@ -199,8 +201,8 @@
         <button data-m="track" data-i18n="addWaypoints">Add waypoints</button>
       </div>
       <div class="row" style="margin-top:11px">
-        <div class="field grow"><span class="u" data-i18n="speed">Speed</span><input type="number" id="speed" value="12" step="1"><span class="u">m/s</span></div>
-        <div class="field grow"><span class="u" data-i18n="every">Every</span><input type="number" id="interval" value="1" step="0.5"><span class="u" data-i18n="sec">s</span></div>
+        <div class="field num"><span class="u" data-i18n="speed">Speed</span><input type="number" id="speed" value="12" step="1"><span class="u">m/s</span></div>
+        <div class="field num"><span class="u" data-i18n="every">Every</span><input type="number" id="interval" value="1" step="0.5"><span class="u" data-i18n="sec">s</span></div>
       </div>
       <div class="row" style="margin-top:9px">
         <button id="btnPlay" class="primary grow" disabled><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"/></svg><span data-i18n="playTrack">Play track</span></button>
@@ -214,8 +216,8 @@
     <div class="card">
       <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg><span data-i18n="encoding">Encoding</span></h2>
       <label class="opt"><span class="t"><span data-i18n="gcjT">China WGS-84 → GCJ-02 shift</span><small data-i18n="gcjS">Offset coordinates inside China</small></span><input type="checkbox" class="sw" id="gcj"></label>
-      <label class="opt"><span class="t"><span data-i18n="cksumT">Append NMEA *checksum</span><small data-i18n="cksumS">The original app omits it</small></span><input type="checkbox" class="sw" id="cksum"></label>
-      <label class="opt"><span class="t"><span data-i18n="crlfT">CRLF between sentences</span><small data-i18n="crlfS">The original app omits it</small></span><input type="checkbox" class="sw" id="crlf"></label>
+      <label class="opt"><span class="t"><span data-i18n="cksumT">Append NMEA *checksum</span><small data-i18n="cksumS">Off by default</small></span><input type="checkbox" class="sw" id="cksum"></label>
+      <label class="opt"><span class="t"><span data-i18n="crlfT">CRLF between sentences</span><small data-i18n="crlfS">Off by default</small></span><input type="checkbox" class="sw" id="crlf"></label>
     </div>
 
     <div class="card">
@@ -223,7 +225,7 @@
       <div id="log"></div>
       <div class="row" style="margin-top:10px"><button id="btnClearLog" class="grow" data-i18n="clearLog">Clear log</button></div>
     </div>
-    <p class="foot" data-i18n="footer">Reverse-engineered from the delisted "HHJ" iOS app. Use only with hardware you own and are authorised to test.</p>
+    <p class="foot" data-i18n="footer">Use only with hardware you own and are authorised to test.</p>
   </div>
   <div id="mapwrap">
     <div id="map"></div>
@@ -280,23 +282,23 @@ const I18N = {
     loopTrack:"Loop track", waypoints:"%n waypoints",
     encoding:"Encoding",
     gcjT:"China WGS-84 → GCJ-02 shift", gcjS:"Offset coordinates inside China",
-    cksumT:"Append NMEA *checksum", cksumS:"The original app omits it",
-    crlfT:"CRLF between sentences", crlfS:"The original app omits it",
+    cksumT:"Append NMEA *checksum", cksumS:"Off by default",
+    crlfT:"CRLF between sentences", crlfS:"Off by default",
     wireLog:"Wire log", clearLog:"Clear log",
-    footer:'Reverse-engineered from the delisted "HHJ" iOS app. Use only with hardware you own and are authorised to test.',
+    footer:'Use only with hardware you own and are authorised to test.',
     searchPh:"Search an address or place…", searchGo:"Search",
     searching:"Searching…", noResults:"No results.", searchFail:"Search failed: %m (needs internet)",
     manual:`<h4>Overview</h4>
 <p>The <b>HHJ 尾插</b> ("tail-plug") adapter changes an iPhone's GPS location quickly and precisely. Typical uses include unlocking region-restricted Apple Watch features (e.g. sleep-apnea and hypertension notifications) and other region-locked functionality.</p>
 <h4>Software</h4>
-<p>Original iOS app: <b>HHJ</b> on the App Store (App ID <code>6746925930</code>). This web tool re-implements the same Bluetooth connection and location injection in the browser.</p>
+<p>This web tool connects to the HHJ device over Bluetooth and injects a GPS location straight from the browser — nothing to install.</p>
 <h4>Getting connected</h4>
 <ol>
-<li>Plug the adapter into the iPhone and open the HHJ app.</li>
+<li>Plug the adapter into the iPhone.</li>
 <li>Tap the Bluetooth icon in the right-side menu.</li>
 <li>Choose <b>“AAAAA”</b> from the device list. On success it shows <span class="zh">“设备认证成功”</span> (device authenticated).</li>
 </ol>
-<h4>App layout</h4>
+<h4>Layout</h4>
 <ul>
 <li><b>Left button</b> — shows the current location (the modified one, if changed).</li>
 <li><b>Bluetooth</b> — connect / disconnect the device.</li>
@@ -342,19 +344,19 @@ const I18N = {
     loopTrack:"循环轨迹", waypoints:"%n 个航点",
     encoding:"编码",
     gcjT:"中国 WGS-84 → GCJ-02 偏移", gcjS:"在中国境内偏移坐标",
-    cksumT:"追加 NMEA *校验和", cksumS:"原应用不添加",
-    crlfT:"语句间加 CRLF", crlfS:"原应用不添加",
+    cksumT:"追加 NMEA *校验和", cksumS:"默认关闭",
+    crlfT:"语句间加 CRLF", crlfS:"默认关闭",
     wireLog:"通信日志", clearLog:"清除日志",
-    footer:'逆向自已下架的 “HHJ” iOS 应用。仅可用于你拥有并获授权测试的硬件。',
+    footer:'仅可用于你拥有并获授权测试的硬件。',
     searchPh:"搜索地址或地点…", searchGo:"搜索",
     searching:"搜索中…", noResults:"无结果。", searchFail:"搜索失败：%m（需要联网）",
     manual:`<h4>概述</h4>
 <p><b>HHJ 尾插</b>可快速、精确地更改 iPhone 的 GPS 位置。常见用途包括解锁受地区限制的 Apple Watch 功能（如睡眠呼吸暂停、高血压通知）以及其他地区锁定功能。</p>
 <h4>软件</h4>
-<p>原版 iOS 应用：App Store 中的 <b>HHJ</b>（App ID <code>6746925930</code>）。本网页工具在浏览器中重新实现了相同的蓝牙连接与位置注入。</p>
+<p>本网页工具直接在浏览器中通过蓝牙连接 HHJ 设备并注入 GPS 位置，无需安装。</p>
 <h4>连接步骤</h4>
 <ol>
-<li>将尾插插入 iPhone，打开 HHJ 应用。</li>
+<li>将尾插插入 iPhone。</li>
 <li>点击右侧菜单中的蓝牙图标。</li>
 <li>在设备列表中选择 <b>“AAAAA”</b>。连接成功会显示“设备认证成功”。</li>
 </ol>
@@ -404,19 +406,19 @@ const I18N = {
     loopTrack:"トラックをループ", waypoints:"経由点 %n 個",
     encoding:"エンコード",
     gcjT:"中国 WGS-84 → GCJ-02 補正", gcjS:"中国国内で座標をずらす",
-    cksumT:"NMEA *チェックサムを付加", cksumS:"元アプリは付けません",
-    crlfT:"センテンス間に CRLF", crlfS:"元アプリは付けません",
+    cksumT:"NMEA *チェックサムを付加", cksumS:"デフォルトはオフ",
+    crlfT:"センテンス間に CRLF", crlfS:"デフォルトはオフ",
     wireLog:"通信ログ", clearLog:"ログをクリア",
-    footer:"配信終了した「HHJ」iOS アプリを解析。所有し、テストを許可されたハードウェアでのみ使用してください。",
+    footer:"所有し、テストを許可されたハードウェアでのみ使用してください。",
     searchPh:"住所や場所を検索…", searchGo:"検索",
     searching:"検索中…", noResults:"結果がありません。", searchFail:"検索に失敗：%m（インターネットが必要）",
     manual:`<h4>概要</h4>
 <p><b>HHJ 尾插</b>（テールプラグ）アダプタは、iPhone の GPS 位置を素早く正確に変更します。地域制限された Apple Watch 機能（睡眠時無呼吸・高血圧通知など）や、地域ロックされた機能の解除に使われます。</p>
 <h4>ソフトウェア</h4>
-<p>オリジナル iOS アプリ：App Store の <b>HHJ</b>（App ID <code>6746925930</code>）。本ウェブツールは同じ Bluetooth 接続と位置注入をブラウザで再実装したものです。</p>
+<p>本ウェブツールはブラウザから直接 Bluetooth で HHJ デバイスに接続し、GPS 位置を注入します。インストール不要です。</p>
 <h4>接続手順</h4>
 <ol>
-<li>アダプタを iPhone に挿し、HHJ アプリを開きます。</li>
+<li>アダプタを iPhone に挿します。</li>
 <li>右側メニューの Bluetooth アイコンをタップします。</li>
 <li>デバイス一覧から <b>「AAAAA」</b> を選びます。成功すると「设备认证成功（認証成功）」と表示されます。</li>
 </ol>
