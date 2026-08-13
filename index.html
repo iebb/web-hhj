@@ -609,12 +609,18 @@ async function setupConnection(){
   authNotify.addEventListener("characteristicvaluechanged",onNotify);
   const dSvc=await gatt.getPrimaryService(DATA_SERVICE);
   locChar=await dSvc.getCharacteristic(LOCATION);
+  // If the location characteristic can report a position, surface it on the map.
+  try{
+    const pr=locChar.properties||{};
+    if(pr.notify||pr.indicate){ await locChar.startNotifications(); locChar.addEventListener("characteristicvaluechanged",onDeviceLoc); }
+    else if(pr.read){ onDeviceLoc({target:{value:await locChar.readValue()}}); }
+  }catch(_){}
   await sleep(250);                                  // let the notify CCCD settle before the write
   if(!gatt.connected) throw new Error("dropped before handshake");
   const a=buildAuth();
   log("tx","auth → "+a);
   await authWrite.writeValueWithResponse(enc.encode(a));
-  setPillK("stAuth","off","st_waiting");
+  if(!authed) setPillK("stAuth","off","st_waiting");   // a fast 'authSuc' notify may already have landed
   setTimeout(()=>{ if(!authed && locChar){ setPillK("stAuth","off","st_noack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
   refreshButtons();
 }
@@ -665,9 +671,40 @@ async function writeLocation(lat,lon,alt){
 }
 
 /* ---------- Map ---------- */
-const map=L.map("map").setView([31.2304,121.4737],13);
+const MONTE_CARLO=[43.7384,7.4246];
+const map=L.map("map").setView(MONTE_CARLO,13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
   maxZoom:19, attribution:"© OpenStreetMap contributors"}).addTo(map);
+
+// Position markers: user's real location (green) and the device's reported location (amber).
+let geoMarker=null, devMarker=null;
+function showGeolocation(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const ll=[pos.coords.latitude,pos.coords.longitude];
+    if(!geoMarker) geoMarker=L.circleMarker(ll,{radius:7,color:"#22c55e",weight:2,fillColor:"#22c55e",fillOpacity:.9}).addTo(map).bindTooltip("You are here");
+    else geoMarker.setLatLng(ll);
+    map.setView(ll,14);
+    log("sys","Your location: "+ll[0].toFixed(5)+", "+ll[1].toFixed(5));
+  }, err=>log("sys","Geolocation unavailable ("+err.message+") — default Monte Carlo."),
+     {enableHighAccuracy:false,timeout:8000,maximumAge:60000});
+}
+showGeolocation();
+// Parse a position the device sends back — NMEA GGA/RMC or a plain "lat,lon".
+function parsePosition(text){
+  const m=text.match(/\$G[NP](?:GGA|RMC),[^*]*?(\d{2,3})(\d{2}\.\d+),([NS]),(\d{2,3})(\d{2}\.\d+),([EW])/);
+  if(m){ let lat=(+m[1])+(+m[2])/60; if(m[3]==="S")lat=-lat; let lon=(+m[4])+(+m[5])/60; if(m[6]==="W")lon=-lon; return [lat,lon]; }
+  const f=text.match(/(-?\d{1,3}(?:\.\d+)?)[,;\s]+(-?\d{1,3}(?:\.\d+)?)/);
+  if(f){ const a=+f[1],b=+f[2]; if(Math.abs(a)<=90&&Math.abs(b)<=180&&(a!==0||b!==0)) return [a,b]; }
+  return null;
+}
+function onDeviceLoc(ev){
+  const pos=parsePosition(dec.decode(ev.target.value));
+  if(!pos) return;
+  if(!devMarker){ devMarker=L.circleMarker(pos,{radius:7,color:"#f0a92b",weight:2,fillColor:"#f0a92b",fillOpacity:.9}).addTo(map).bindTooltip("Device position");
+    log("rx","device position ← "+pos[0].toFixed(6)+", "+pos[1].toFixed(6)); }
+  else devMarker.setLatLng(pos);
+}
 
 let clickMode="point";
 let point=null, pointMarker=null;         // single injection point
