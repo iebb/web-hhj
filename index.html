@@ -162,7 +162,7 @@
         <button data-l="ja" title="日本語">日</button>
       </div>
     </div>
-    <p class="sub" data-i18n="subtitle">Search or click the map to place a point, then inject it — once or as a moving track — to the HHJ gadget over Web Bluetooth.</p>
+    <p class="sub" data-i18n="subtitle">Search or click the map to place a point, then inject it — once or as a moving track — to an HHJ or KKlbs gadget over Web Bluetooth.</p>
     <button id="btnManual" class="wide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span data-i18n="manualBtn">Manual</span></button>
 
     <div class="card">
@@ -264,16 +264,18 @@ const DATA_SERVICE = "0000fbb2-0000-1000-8000-00805f8c12ab";
 const LOCATION     = "000032e1-0000-1000-8000-00805f8a12fb"; // write w/o response
 const SECRET_KEY   = "dsfds123";
 const SUCCESS      = "authSuc";
+// KKlbs (com.lbs.KKlbs) — serial-style module, no secret handshake
+const KK_SERVICE   = "0000fff0-0000-1000-8000-00805f9b34fb"; // FFF0 service; chars FFF1/FFF2
 
 /* ---------- i18n (EN / 中文 / 日本語) ---------- */
 const I18N = {
   en:{
-    subtitle:"Search or click the map to place a point, then inject it — once or as a moving track — to the HHJ gadget over Web Bluetooth.",
+    subtitle:"Search or click the map to place a point, then inject it — once or as a moving track — to an HHJ or KKlbs gadget over Web Bluetooth.",
     manualBtn:"Manual", manualTitle:"HHJ — User manual",
     device:"Device", connect:"Connect", disconnect:"Disconnect",
     showAll:"Show all devices", showAllSub:"Bypass the AAAAA / br29 name filter",
     link:"Link", auth:"Auth", deviceLbl:"Device",
-    st_disconnected:"disconnected", st_connected:"connected", st_waiting:"waiting…", st_noack:"no ack", st_reconnecting:"reconnecting…", st_failed:"failed",
+    st_disconnected:"disconnected", st_connected:"connected", st_waiting:"waiting…", st_noack:"no ack", st_reconnecting:"reconnecting…", st_failed:"failed", st_ready:"ready",
     browserHint:"Needs <b>Chrome</b> or <b>Edge</b>. Serve over <b>https://</b> or open as a local <b>file://</b>.",
     injPoint:"Injection point", latitude:"Latitude", longitude:"Longitude", altitude:"Altitude", metres:"metres",
     injectOnce:"Inject once", stream:"Stream", stopStream:"Stop stream",
@@ -330,12 +332,12 @@ const I18N = {
 <p class="src">Manual adapted from <a href="https://www.wenziwanka.com/other/232.html" target="_blank" rel="noopener">wenziwanka.com/other/232.html</a>. Use only with hardware you own and are authorised to test.</p>`
   },
   zh:{
-    subtitle:"搜索或点击地图放置一个点，然后通过 Web 蓝牙将其注入 HHJ 设备——单次或作为移动轨迹。",
+    subtitle:"搜索或点击地图放置一个点，然后通过 Web 蓝牙将其注入 HHJ 或 KKlbs 设备——单次或作为移动轨迹。",
     manualBtn:"使用手册", manualTitle:"HHJ — 使用手册",
     device:"设备", connect:"连接", disconnect:"断开",
     showAll:"显示所有设备", showAllSub:"绕过 AAAAA / br29 名称过滤",
     link:"连接", auth:"认证", deviceLbl:"设备",
-    st_disconnected:"未连接", st_connected:"已连接", st_waiting:"等待中…", st_noack:"无应答", st_reconnecting:"重连中…", st_failed:"连接失败",
+    st_disconnected:"未连接", st_connected:"已连接", st_waiting:"等待中…", st_noack:"无应答", st_reconnecting:"重连中…", st_failed:"连接失败", st_ready:"就绪",
     browserHint:"需要 <b>Chrome</b> 或 <b>Edge</b>。通过 <b>https://</b> 提供，或作为本地 <b>file://</b> 打开。",
     injPoint:"注入点", latitude:"纬度", longitude:"经度", altitude:"海拔", metres:"米",
     injectOnce:"注入一次", stream:"持续发送", stopStream:"停止发送",
@@ -392,12 +394,12 @@ const I18N = {
 <p class="src">手册整理自 <a href="https://www.wenziwanka.com/other/232.html" target="_blank" rel="noopener">wenziwanka.com/other/232.html</a>。仅可用于你拥有并获授权测试的硬件。</p>`
   },
   ja:{
-    subtitle:"住所を検索するか地図をクリックして地点を置き、Web Bluetooth 経由で HHJ デバイスに注入します（単発または移動トラック）。",
+    subtitle:"住所を検索するか地図をクリックして地点を置き、Web Bluetooth 経由で HHJ または KKlbs デバイスに注入します（単発または移動トラック）。",
     manualBtn:"マニュアル", manualTitle:"HHJ — 取扱説明書",
     device:"デバイス", connect:"接続", disconnect:"切断",
     showAll:"すべてのデバイスを表示", showAllSub:"AAAAA / br29 の名前フィルタを無視",
     link:"リンク", auth:"認証", deviceLbl:"デバイス",
-    st_disconnected:"未接続", st_connected:"接続済み", st_waiting:"待機中…", st_noack:"応答なし", st_reconnecting:"再接続中…", st_failed:"接続失敗",
+    st_disconnected:"未接続", st_connected:"接続済み", st_waiting:"待機中…", st_noack:"応答なし", st_reconnecting:"再接続中…", st_failed:"接続失敗", st_ready:"準備完了",
     browserHint:"<b>Chrome</b> または <b>Edge</b> が必要です。<b>https://</b> で配信するか、ローカルの <b>file://</b> で開いてください。",
     injPoint:"注入地点", latitude:"緯度", longitude:"経度", altitude:"高度", metres:"メートル",
     injectOnce:"1回注入", stream:"連続送信", stopStream:"送信停止",
@@ -508,12 +510,21 @@ function fmtCoord(v){
 const p2=n=>String(n).padStart(2,"0");
 function nmeaChecksum(body){let c=0;for(const ch of body)c^=ch.charCodeAt(0);return c.toString(16).toUpperCase().padStart(2,"0");}
 
+function kkField(v,degDigits){
+  const av=Math.abs(v), deg=Math.trunc(av), minutes=(av-deg)*60;
+  let mi=Math.floor(minutes), mf=Math.round((minutes-mi)*1e6);
+  if(mf>=1000000){ mf-=1000000; mi+=1; }
+  return String(deg).padStart(degDigits,"0")+String(mi).padStart(2,"0")+"."+String(mf).padStart(6,"0");
+}
 function buildLocation(lat, lon, alt){
-  const useGcj=document.getElementById("gcj").checked;
+  if(document.getElementById("gcj").checked) [lat,lon]=wgs84ToGcj02(lat,lon);
+  const ns=lat>=0?"N":"S", ew=lon>=0?"E":"W";
+  if(devKind==="kklbs"){
+    // KKlbs: "%02d%02d.%06d,%@,%03d%02d.%06d,%@,%@" → ddmm.mmmmmm,N,dddmm.mmmmmm,E,<alt>
+    return kkField(lat,2)+","+ns+","+kkField(lon,3)+","+ew+","+(Number(alt)||0);
+  }
   const cks=document.getElementById("cksum").checked;
   const crlf=document.getElementById("crlf").checked;
-  if(useGcj) [lat,lon]=wgs84ToGcj02(lat,lon);
-  const ns=lat>=0?"N":"S", ew=lon>=0?"E":"W";
   const la=fmtCoord(lat), lo=fmtCoord(lon);
   const d=new Date();
   const utc=p2(d.getUTCHours())+p2(d.getUTCMinutes())+p2(d.getUTCSeconds())+".00";
@@ -538,7 +549,7 @@ function log(kind,msg){
 
 /* ---------- BLE ---------- */
 let device=null, locChar=null, authWrite=null, authNotify=null, authed=false;
-let connecting=false, manualDisconnect=false, reconnectTimer=null;
+let connecting=false, manualDisconnect=false, reconnectTimer=null, devKind=null;
 const enc=new TextEncoder(), dec=new TextDecoder();
 
 function setPill(id,cls,txt){const e=document.getElementById(id);e.className="pill "+cls;e.textContent=txt;delete e.dataset.k;}
@@ -560,9 +571,9 @@ async function connect(){
   manualDisconnect=false;
   if(!device){
     try{
-      const opts={ optionalServices:[AUTH_SERVICE,DATA_SERVICE] };
+      const opts={ optionalServices:[AUTH_SERVICE,DATA_SERVICE,KK_SERVICE] };
       if(document.getElementById("chkAll").checked){ opts.acceptAllDevices=true; }
-      else { opts.filters=[{name:"AAAAA"},{namePrefix:"br29"},{services:[AUTH_SERVICE]}]; }
+      else { opts.filters=[{name:"AAAAA"},{namePrefix:"br29"},{services:[AUTH_SERVICE]},{namePrefix:"KKlbs"},{services:[KK_SERVICE]}]; }
       log("sys","Requesting device…");
       device=await navigator.bluetooth.requestDevice(opts);
       device.addEventListener("gattserverdisconnected",onDisconnected);
@@ -602,6 +613,16 @@ async function setupConnection(){
   setPillK("stLink","good","st_connected");
   await sleep(300);                                  // let the link settle before discovery
   if(!gatt.connected) throw new Error("dropped after connect");
+  const svcs=await gatt.getPrimaryServices();
+  const has=u=>svcs.some(s=>s.uuid.toLowerCase()===u);
+  if(has(AUTH_SERVICE)){ devKind="hhj"; await setupHHJ(gatt); }
+  else if(has(KK_SERVICE)){ devKind="kklbs"; await setupKK(gatt); }
+  else throw new Error("no recognised HHJ / KKlbs service");
+  document.getElementById("stName").textContent=(device.name||device.id)+" · "+devKind.toUpperCase();
+  refreshButtons();
+}
+
+async function setupHHJ(gatt){
   const aSvc=await gatt.getPrimaryService(AUTH_SERVICE);
   authWrite=await aSvc.getCharacteristic(AUTH_WRITE);
   authNotify=await aSvc.getCharacteristic(AUTH_NOTIFY);
@@ -622,7 +643,20 @@ async function setupConnection(){
   await authWrite.writeValueWithResponse(enc.encode(a));
   if(!authed) setPillK("stAuth","off","st_waiting");   // a fast 'authSuc' notify may already have landed
   setTimeout(()=>{ if(!authed && locChar){ setPillK("stAuth","off","st_noack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
-  refreshButtons();
+}
+
+async function setupKK(gatt){
+  const svc=await gatt.getPrimaryService(KK_SERVICE);
+  const chars=await svc.getCharacteristics();
+  let writeC=null, notifyC=null;
+  for(const c of chars){ const p=c.properties;
+    if(!writeC && (p.write||p.writeWithoutResponse)) writeC=c;
+    if(!notifyC && (p.notify||p.indicate)) notifyC=c; }
+  if(!writeC) throw new Error("KKlbs: no writable characteristic in FFF0");
+  locChar=writeC;
+  if(notifyC){ try{ await notifyC.startNotifications(); notifyC.addEventListener("characteristicvaluechanged",onKKNotify); }catch(_){} }
+  authed=true; setPillK("stAuth","good","st_ready");   // KKlbs has no secret handshake
+  log("sys","KKlbs ready — write "+writeC.uuid.slice(4,8)+(notifyC?(", notify "+notifyC.uuid.slice(4,8)):""));
 }
 function onNotify(ev){
   const dv=ev.target.value;
@@ -649,7 +683,7 @@ async function disconnect(){
   manualDisconnect=true; clearTimeout(reconnectTimer);
   try{ if(device && device.gatt.connected) device.gatt.disconnect(); }catch(e){}
   stopStream(); stopTrack();
-  connecting=false; authed=false; locChar=null; authWrite=null; authNotify=null; device=null;
+  connecting=false; authed=false; locChar=null; authWrite=null; authNotify=null; device=null; devKind=null;
   setPillK("stLink","off","st_disconnected"); setPill("stAuth","off","—");
   document.getElementById("stName").textContent="—";
   refreshButtons();
@@ -663,7 +697,8 @@ async function writeLocation(lat,lon,alt){
   writing=true;
   try{
     const bytes=enc.encode(text);
-    if(locChar.writeValueWithoutResponse) await locChar.writeValueWithoutResponse(bytes);
+    const pr=locChar.properties||{};
+    if(pr.writeWithoutResponse && locChar.writeValueWithoutResponse) await locChar.writeValueWithoutResponse(bytes);
     else await locChar.writeValue(bytes);
     log("tx","loc → "+text.replace(/\r\n/g," "));
   }catch(e){ log("er","write failed: "+e.message); }
@@ -697,6 +732,13 @@ function parsePosition(text){
   const f=text.match(/(-?\d{1,3}(?:\.\d+)?)[,;\s]+(-?\d{1,3}(?:\.\d+)?)/);
   if(f){ const a=+f[1],b=+f[2]; if(Math.abs(a)<=90&&Math.abs(b)<=180&&(a!==0||b!==0)) return [a,b]; }
   return null;
+}
+function onKKNotify(ev){
+  const dv=ev.target.value;
+  const b=new Uint8Array(dv.buffer,dv.byteOffset,dv.byteLength);
+  const hex=[...b].map(x=>x.toString(16).padStart(2,"0")).join(" ");
+  log("rx","dev ← "+JSON.stringify(dec.decode(dv))+"  ["+hex+"]");
+  onDeviceLoc(ev);
 }
 function onDeviceLoc(ev){
   const pos=parsePosition(dec.decode(ev.target.value));
@@ -858,7 +900,7 @@ const _auto=_nav.startsWith("zh")?"zh":_nav.startsWith("ja")?"ja":"en";
 applyLang(_saved||_auto);
 
 if(!navigator.bluetooth) log("er","This browser has no Web Bluetooth. Use Chrome or Edge.");
-else log("sys","Ready. Click ‘Connect’ and pick your HHJ gadget (name ‘AAAAA’ or containing ‘br29’).");
+else log("sys","Ready. Click ‘Connect’ and pick your gadget — HHJ (‘AAAAA’ / ‘br29’) or KKlbs (‘KKlbs…’). Device type is auto-detected.");
 </script>
 </body>
 </html>
