@@ -69,6 +69,9 @@
   .coord{background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
   .coord .k{color:var(--faint);font-size:10px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
   .coord .v{font:600 15px/1.2 var(--mono);color:var(--txt);font-variant-numeric:tabular-nums}
+  .coord input.cv{width:100%;background:transparent;border:0;outline:none;color:var(--txt);font:600 15px/1.2 var(--mono);font-variant-numeric:tabular-nums;padding:0}
+  .coord input.cv::placeholder{color:var(--faint);font-weight:600}
+  .coord:focus-within{border-color:var(--accent)}
   /* fields */
   .fieldlabel{color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px}
   .field{display:flex;align-items:center;gap:7px;background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:0 11px}
@@ -171,7 +174,7 @@
         <button id="btnConnect" class="primary grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg><span data-i18n="connect">Connect</span></button>
         <button id="btnDisconnect" data-i18n="disconnect" disabled>Disconnect</button>
       </div>
-      <label class="opt"><span class="t"><span data-i18n="showAll">Show all devices</span><small data-i18n="showAllSub">Bypass the AAAAA / br29 name filter</small></span><input type="checkbox" class="sw" id="chkAll"></label>
+      <label class="opt"><span class="t"><span data-i18n="showAll">Filter to known gadgets</span><small data-i18n="showAllSub">Show only HHJ / KKlbs by name (off is most compatible)</small></span><input type="checkbox" class="sw" id="chkAll"></label>
       <div class="stat">
         <span class="k" data-i18n="link">Link</span><span><span id="stLink" class="pill off" data-k="st_disconnected">disconnected</span></span>
         <span class="k" data-i18n="auth">Auth</span><span><span id="stAuth" class="pill off">—</span></span>
@@ -183,8 +186,8 @@
     <div class="card">
       <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-i18n="injPoint">Injection point</span></h2>
       <div class="coords">
-        <div class="coord"><div class="k" data-i18n="latitude">Latitude</div><div class="v" id="ptLat">—</div></div>
-        <div class="coord"><div class="k" data-i18n="longitude">Longitude</div><div class="v" id="ptLon">—</div></div>
+        <div class="coord"><div class="k" data-i18n="latitude">Latitude</div><input class="cv" id="ptLat" type="number" step="any" inputmode="decimal" placeholder="—"></div>
+        <div class="coord"><div class="k" data-i18n="longitude">Longitude</div><input class="cv" id="ptLon" type="number" step="any" inputmode="decimal" placeholder="—"></div>
       </div>
       <label class="fieldlabel" data-i18n="altitude">Altitude</label>
       <div class="field"><input type="number" id="alt" value="10" step="1"><span class="u" data-i18n="metres">metres</span></div>
@@ -273,7 +276,7 @@ const I18N = {
     subtitle:"Search or click the map to place a point, then inject it — once or as a moving track — to an HHJ or KKlbs gadget over Web Bluetooth.",
     manualBtn:"Manual", manualTitle:"HHJ — User manual",
     device:"Device", connect:"Connect", disconnect:"Disconnect",
-    showAll:"Show all devices", showAllSub:"Bypass the AAAAA / br29 name filter",
+    showAll:"Filter to known gadgets", showAllSub:"Show only HHJ / KKlbs by name (off is most compatible)",
     link:"Link", auth:"Auth", deviceLbl:"Device",
     st_disconnected:"disconnected", st_connected:"connected", st_waiting:"waiting…", st_noack:"no ack", st_reconnecting:"reconnecting…", st_failed:"failed", st_ready:"ready",
     browserHint:"Needs <b>Chrome</b> or <b>Edge</b>. Serve over <b>https://</b> or open as a local <b>file://</b>.",
@@ -335,7 +338,7 @@ const I18N = {
     subtitle:"搜索或点击地图放置一个点，然后通过 Web 蓝牙将其注入 HHJ 或 KKlbs 设备——单次或作为移动轨迹。",
     manualBtn:"使用手册", manualTitle:"HHJ — 使用手册",
     device:"设备", connect:"连接", disconnect:"断开",
-    showAll:"显示所有设备", showAllSub:"绕过 AAAAA / br29 名称过滤",
+    showAll:"仅筛选已知设备", showAllSub:"仅按名称显示 HHJ / KKlbs（关闭兼容性最好）",
     link:"连接", auth:"认证", deviceLbl:"设备",
     st_disconnected:"未连接", st_connected:"已连接", st_waiting:"等待中…", st_noack:"无应答", st_reconnecting:"重连中…", st_failed:"连接失败", st_ready:"就绪",
     browserHint:"需要 <b>Chrome</b> 或 <b>Edge</b>。通过 <b>https://</b> 提供，或作为本地 <b>file://</b> 打开。",
@@ -397,7 +400,7 @@ const I18N = {
     subtitle:"住所を検索するか地図をクリックして地点を置き、Web Bluetooth 経由で HHJ または KKlbs デバイスに注入します（単発または移動トラック）。",
     manualBtn:"マニュアル", manualTitle:"HHJ — 取扱説明書",
     device:"デバイス", connect:"接続", disconnect:"切断",
-    showAll:"すべてのデバイスを表示", showAllSub:"AAAAA / br29 の名前フィルタを無視",
+    showAll:"既知のデバイスに絞る", showAllSub:"名前で HHJ / KKlbs のみ表示（オフが最も互換）",
     link:"リンク", auth:"認証", deviceLbl:"デバイス",
     st_disconnected:"未接続", st_connected:"接続済み", st_waiting:"待機中…", st_noack:"応答なし", st_reconnecting:"再接続中…", st_failed:"接続失敗", st_ready:"準備完了",
     browserHint:"<b>Chrome</b> または <b>Edge</b> が必要です。<b>https://</b> で配信するか、ローカルの <b>file://</b> で開いてください。",
@@ -571,9 +574,15 @@ async function connect(){
   manualDisconnect=false;
   if(!device){
     try{
+      // Default to acceptAllDevices — cross-browser reliable (namePrefix can't do the
+      // HHJ "br29" substring, and many devices don't advertise name/service UUIDs).
+      // The checkbox opts INTO name/service filtering for a shorter chooser list.
       const opts={ optionalServices:[AUTH_SERVICE,DATA_SERVICE,KK_SERVICE] };
-      if(document.getElementById("chkAll").checked){ opts.acceptAllDevices=true; }
-      else { opts.filters=[{name:"AAAAA"},{namePrefix:"br29"},{services:[AUTH_SERVICE]},{namePrefix:"KKlbs"},{services:[KK_SERVICE]}]; }
+      if(document.getElementById("chkAll").checked){
+        opts.filters=[{name:"AAAAA"},{namePrefix:"br29"},{namePrefix:"KKlbs"},{services:[AUTH_SERVICE]},{services:[KK_SERVICE]}];
+      } else {
+        opts.acceptAllDevices=true;
+      }
       log("sys","Requesting device…");
       device=await navigator.bluetooth.requestDevice(opts);
       device.addEventListener("gattserverdisconnected",onDisconnected);
@@ -752,18 +761,31 @@ let clickMode="point";
 let point=null, pointMarker=null;         // single injection point
 let waypoints=[], trackLine=null, wpMarkers=[], moveMarker=null;
 
-function setPoint(latlng){
-  point=[latlng.lat,latlng.lng];
+function placePoint(lat,lon){
+  point=[lat,lon];
+  const ll=L.latLng(lat,lon);
   if(!pointMarker){
-    pointMarker=L.marker(latlng,{draggable:true}).addTo(map);
+    pointMarker=L.marker(ll,{draggable:true}).addTo(map);
     pointMarker.on("drag",e=>{const p=e.target.getLatLng();point=[p.lat,p.lng];updatePointReadout();});
-  } else pointMarker.setLatLng(latlng);
+  } else pointMarker.setLatLng(ll);
   updatePointReadout();
 }
+function setPoint(latlng){ placePoint(latlng.lat,latlng.lng); }
 function updatePointReadout(){
-  document.getElementById("ptLat").textContent=point?point[0].toFixed(6):"—";
-  document.getElementById("ptLon").textContent=point?point[1].toFixed(6):"—";
+  const a=document.getElementById("ptLat"), b=document.getElementById("ptLon");
+  if(document.activeElement!==a) a.value=point?point[0].toFixed(6):"";
+  if(document.activeElement!==b) b.value=point?point[1].toFixed(6):"";
 }
+// Type coordinates directly into the Lat/Lon fields.
+["ptLat","ptLon"].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener("input",()=>{
+    const la=parseFloat(document.getElementById("ptLat").value);
+    const lo=parseFloat(document.getElementById("ptLon").value);
+    if(Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180) placePoint(la,lo);
+  });
+  el.addEventListener("change",()=>{ if(point) map.panTo(L.latLng(point[0],point[1])); });
+});
 function addWaypoint(latlng){
   waypoints.push([latlng.lat,latlng.lng]);
   const m=L.circleMarker(latlng,{radius:5,color:"#4f8cff",fillColor:"#8ab4ff",fillOpacity:1}).addTo(map);
