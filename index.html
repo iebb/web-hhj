@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>HHJ Web-BLE GPS Injector</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
@@ -149,6 +149,12 @@
   @media(max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:1fr 48vh}
     #side{order:2;border-right:0;border-top:1px solid var(--line)}#mapwrap{order:1}
     #searchbar{width:calc(100% - 24px);top:12px}}
+  /* Touch devices: 16px inputs stop iOS Safari from auto-zooming on focus;
+     touch-action:manipulation removes double-tap zoom + tap delay on controls. */
+  @media(pointer:coarse){
+    input,.field input,.coord input.cv,#q{font-size:16px}
+    button,input,.opt,.seg button,.lang button{touch-action:manipulation}
+  }
 </style>
 </head>
 <body>
