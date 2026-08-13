@@ -615,7 +615,7 @@ async function runConnect(){
       log("er",`Attempt ${i} failed: ${e.message}`);
       try{ if(device&&device.gatt.connected) device.gatt.disconnect(); }catch(_){}
       authed=false; locChar=null; authWrite=null; authNotify=null;
-      if(i<ATTEMPTS && !manualDisconnect) await sleep(700*i);
+      if(i<ATTEMPTS && !manualDisconnect) await sleep(600+500*i);   // cooldown so the module can reset
     }
   }
   connecting=false; refreshButtons();
@@ -626,19 +626,23 @@ async function setupConnection(){
   const gatt=device.gatt;
   await gatt.connect();
   setPillK("stLink","good","st_connected");
-  await sleep(300);                                  // let the link settle before discovery
-  if(!gatt.connected) throw new Error("dropped after connect");
-  const svcs=await gatt.getPrimaryServices();
-  const has=u=>svcs.some(s=>s.uuid.toLowerCase()===u);
-  if(has(AUTH_SERVICE)){ devKind="hhj"; await setupHHJ(gatt); }
-  else if(has(KK_SERVICE)){ devKind="kklbs"; await setupKK(gatt); }
-  else throw new Error("no recognised HHJ / KKlbs service");
+  if(!gatt.connected) throw new Error("dropped immediately after connect");
+  // Discover the target service straight away — these modules drop an idle link,
+  // and a targeted getPrimaryService is far lighter than enumerating everything.
+  let kind=null, svc=null;
+  for(const [k,uuid] of [["hhj",AUTH_SERVICE],["kklbs",KK_SERVICE]]){
+    try{ svc=await gatt.getPrimaryService(uuid); kind=k; break; }
+    catch(e){ if(!gatt.connected) throw new Error("dropped during discovery"); /* service absent → try next */ }
+  }
+  if(!kind) throw new Error("no recognised HHJ / KKlbs service");
+  devKind=kind;
+  if(kind==="hhj") await setupHHJ(gatt, svc);
+  else await setupKK(gatt, svc);
   document.getElementById("stName").textContent=(device.name||device.id)+" · "+devKind.toUpperCase();
   refreshButtons();
 }
 
-async function setupHHJ(gatt){
-  const aSvc=await gatt.getPrimaryService(AUTH_SERVICE);
+async function setupHHJ(gatt, aSvc){
   authWrite=await aSvc.getCharacteristic(AUTH_WRITE);
   authNotify=await aSvc.getCharacteristic(AUTH_NOTIFY);
   await authNotify.startNotifications();
@@ -660,8 +664,7 @@ async function setupHHJ(gatt){
   setTimeout(()=>{ if(!authed && locChar){ setPillK("stAuth","off","st_noack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
 }
 
-async function setupKK(gatt){
-  const svc=await gatt.getPrimaryService(KK_SERVICE);
+async function setupKK(gatt, svc){
   const chars=await svc.getCharacteristics();
   let writeC=null, notifyC=null;
   for(const c of chars){ const p=c.properties;
