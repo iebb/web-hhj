@@ -273,7 +273,7 @@ const I18N = {
     device:"Device", connect:"Connect", disconnect:"Disconnect",
     showAll:"Show all devices", showAllSub:"Bypass the AAAAA / br29 name filter",
     link:"Link", auth:"Auth", deviceLbl:"Device",
-    st_disconnected:"disconnected", st_connected:"connected", st_waiting:"waiting…", st_noack:"no ack",
+    st_disconnected:"disconnected", st_connected:"connected", st_waiting:"waiting…", st_noack:"no ack", st_reconnecting:"reconnecting…", st_failed:"failed",
     browserHint:"Needs <b>Chrome</b> or <b>Edge</b>. Serve over <b>https://</b> or open as a local <b>file://</b>.",
     injPoint:"Injection point", latitude:"Latitude", longitude:"Longitude", altitude:"Altitude", metres:"metres",
     injectOnce:"Inject once", stream:"Stream", stopStream:"Stop stream",
@@ -335,7 +335,7 @@ const I18N = {
     device:"设备", connect:"连接", disconnect:"断开",
     showAll:"显示所有设备", showAllSub:"绕过 AAAAA / br29 名称过滤",
     link:"连接", auth:"认证", deviceLbl:"设备",
-    st_disconnected:"未连接", st_connected:"已连接", st_waiting:"等待中…", st_noack:"无应答",
+    st_disconnected:"未连接", st_connected:"已连接", st_waiting:"等待中…", st_noack:"无应答", st_reconnecting:"重连中…", st_failed:"连接失败",
     browserHint:"需要 <b>Chrome</b> 或 <b>Edge</b>。通过 <b>https://</b> 提供，或作为本地 <b>file://</b> 打开。",
     injPoint:"注入点", latitude:"纬度", longitude:"经度", altitude:"海拔", metres:"米",
     injectOnce:"注入一次", stream:"持续发送", stopStream:"停止发送",
@@ -397,7 +397,7 @@ const I18N = {
     device:"デバイス", connect:"接続", disconnect:"切断",
     showAll:"すべてのデバイスを表示", showAllSub:"AAAAA / br29 の名前フィルタを無視",
     link:"リンク", auth:"認証", deviceLbl:"デバイス",
-    st_disconnected:"未接続", st_connected:"接続済み", st_waiting:"待機中…", st_noack:"応答なし",
+    st_disconnected:"未接続", st_connected:"接続済み", st_waiting:"待機中…", st_noack:"応答なし", st_reconnecting:"再接続中…", st_failed:"接続失敗",
     browserHint:"<b>Chrome</b> または <b>Edge</b> が必要です。<b>https://</b> で配信するか、ローカルの <b>file://</b> で開いてください。",
     injPoint:"注入地点", latitude:"緯度", longitude:"経度", altitude:"高度", metres:"メートル",
     injectOnce:"1回注入", stream:"連続送信", stopStream:"送信停止",
@@ -537,57 +537,86 @@ function log(kind,msg){
 }
 
 /* ---------- BLE ---------- */
-let device=null, server=null, locChar=null, authWrite=null, authNotify=null, authed=false;
+let device=null, locChar=null, authWrite=null, authNotify=null, authed=false;
+let connecting=false, manualDisconnect=false, reconnectTimer=null;
 const enc=new TextEncoder(), dec=new TextDecoder();
 
 function setPill(id,cls,txt){const e=document.getElementById(id);e.className="pill "+cls;e.textContent=txt;delete e.dataset.k;}
 function setPillK(id,cls,key){const e=document.getElementById(id);e.className="pill "+cls;e.dataset.k=key;e.textContent=t(key);}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error((label||"operation")+" timed out")),ms))]);}
 function refreshButtons(){
   const linked=!!locChar;
+  document.getElementById("btnConnect").disabled=connecting||linked;
   document.getElementById("btnDisconnect").disabled=!device;
-  document.getElementById("btnConnect").disabled=!!device;
   document.getElementById("btnInject").disabled=!linked;
   document.getElementById("btnStream").disabled=!linked;
   document.getElementById("btnPlay").disabled=!linked||waypoints.length<2;
 }
 
 async function connect(){
-  if(!navigator.bluetooth){log("er","Web Bluetooth unavailable — use Chrome/Edge over https or file://.");return;}
-  try{
-    const opts={ optionalServices:[AUTH_SERVICE,DATA_SERVICE] };
-    if(document.getElementById("chkAll").checked){ opts.acceptAllDevices=true; }
-    else { opts.filters=[{name:"AAAAA"},{namePrefix:"br29"},{services:[AUTH_SERVICE]}]; }
-    log("sys","Requesting device…");
-    device=await navigator.bluetooth.requestDevice(opts);
-    device.addEventListener("gattserverdisconnected",onDisconnected);
-    document.getElementById("stName").textContent=device.name||device.id;
-    log("sys","Connecting GATT…");
-    server=await device.gatt.connect();
-    setPillK("stLink","good","st_connected");
-
-    const aSvc=await server.getPrimaryService(AUTH_SERVICE);
-    authWrite=await aSvc.getCharacteristic(AUTH_WRITE);
-    authNotify=await aSvc.getCharacteristic(AUTH_NOTIFY);
-    await authNotify.startNotifications();
-    authNotify.addEventListener("characteristicvaluechanged",onNotify);
-
-    const dSvc=await server.getPrimaryService(DATA_SERVICE);
-    locChar=await dSvc.getCharacteristic(LOCATION);
-
-    // Handshake: "<unix_seconds>_dsfds123"  (let the notify CCCD settle first)
-    await new Promise(r=>setTimeout(r,250));
-    const a=buildAuth();
-    log("tx","auth → "+a);
-    await authWrite.writeValueWithResponse(enc.encode(a));
-    setPillK("stAuth","off","st_waiting");
-    setTimeout(()=>{ if(!authed){ setPillK("stAuth","off","st_noack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
-
-    refreshButtons();
-    log("sys","Ready. Location characteristic acquired.");
-  }catch(e){
-    log("er","Connect failed: "+e.message);
-    await cleanup();
+  if(!navigator.bluetooth){ log("er","Web Bluetooth unavailable — use Chrome/Edge over https or file://."); return; }
+  if(connecting) return;
+  manualDisconnect=false;
+  if(!device){
+    try{
+      const opts={ optionalServices:[AUTH_SERVICE,DATA_SERVICE] };
+      if(document.getElementById("chkAll").checked){ opts.acceptAllDevices=true; }
+      else { opts.filters=[{name:"AAAAA"},{namePrefix:"br29"},{services:[AUTH_SERVICE]}]; }
+      log("sys","Requesting device…");
+      device=await navigator.bluetooth.requestDevice(opts);
+      device.addEventListener("gattserverdisconnected",onDisconnected);
+      document.getElementById("stName").textContent=device.name||device.id;
+    }catch(e){ log("er","No device selected: "+e.message); return; }
   }
+  runConnect();
+}
+
+// Connect + discover + authenticate, retrying on the flaky drops these modules exhibit.
+async function runConnect(){
+  if(connecting||!device) return;
+  connecting=true; clearTimeout(reconnectTimer); refreshButtons();
+  const ATTEMPTS=5;
+  for(let i=1;i<=ATTEMPTS;i++){
+    if(manualDisconnect||!device) break;
+    try{
+      log("sys",`Connecting… (attempt ${i}/${ATTEMPTS})`);
+      await withTimeout(setupConnection(),13000,"connect");
+      connecting=false; refreshButtons();
+      log("sys","Ready. Location characteristic acquired.");
+      return;
+    }catch(e){
+      log("er",`Attempt ${i} failed: ${e.message}`);
+      try{ if(device&&device.gatt.connected) device.gatt.disconnect(); }catch(_){}
+      authed=false; locChar=null; authWrite=null; authNotify=null;
+      if(i<ATTEMPTS && !manualDisconnect) await sleep(700*i);
+    }
+  }
+  connecting=false; refreshButtons();
+  if(!manualDisconnect){ setPillK("stLink","bad","st_failed"); log("er","Could not establish a stable connection — click Connect to retry."); }
+}
+
+async function setupConnection(){
+  const gatt=device.gatt;
+  await gatt.connect();
+  setPillK("stLink","good","st_connected");
+  await sleep(300);                                  // let the link settle before discovery
+  if(!gatt.connected) throw new Error("dropped after connect");
+  const aSvc=await gatt.getPrimaryService(AUTH_SERVICE);
+  authWrite=await aSvc.getCharacteristic(AUTH_WRITE);
+  authNotify=await aSvc.getCharacteristic(AUTH_NOTIFY);
+  await authNotify.startNotifications();
+  authNotify.addEventListener("characteristicvaluechanged",onNotify);
+  const dSvc=await gatt.getPrimaryService(DATA_SERVICE);
+  locChar=await dSvc.getCharacteristic(LOCATION);
+  await sleep(250);                                  // let the notify CCCD settle before the write
+  if(!gatt.connected) throw new Error("dropped before handshake");
+  const a=buildAuth();
+  log("tx","auth → "+a);
+  await authWrite.writeValueWithResponse(enc.encode(a));
+  setPillK("stAuth","off","st_waiting");
+  setTimeout(()=>{ if(!authed && locChar){ setPillK("stAuth","off","st_noack"); log("sys","No 'authSuc' yet — injecting is still enabled (firmware may not ack)."); } },10000);
+  refreshButtons();
 }
 function onNotify(ev){
   const dv=ev.target.value;
@@ -598,15 +627,27 @@ function onNotify(ev){
   // tolerant match: device may append a NUL / whitespace / length byte around "authSuc"
   if(txt.includes(SUCCESS)){ authed=true; setPill("stAuth","good","authSuc"); }
 }
-function onDisconnected(){ log("sys","Device disconnected."); cleanup(); }
-async function cleanup(){
+function onDisconnected(){
+  log("sys","Device disconnected.");
+  authed=false; locChar=null; authWrite=null; authNotify=null;
   stopStream(); stopTrack();
-  authed=false; locChar=null; authWrite=null; authNotify=null; server=null; device=null;
+  setPill("stAuth","off","—"); refreshButtons();
+  if(manualDisconnect){ setPillK("stLink","off","st_disconnected"); return; }
+  if(connecting){ setPillK("stLink","off","st_reconnecting"); return; }   // the retry loop owns it
+  // unexpected drop while connected → auto-reconnect with the same device (no chooser)
+  setPillK("stLink","off","st_reconnecting");
+  clearTimeout(reconnectTimer);
+  reconnectTimer=setTimeout(()=>{ if(device && !manualDisconnect) runConnect(); },1500);
+}
+async function disconnect(){
+  manualDisconnect=true; clearTimeout(reconnectTimer);
+  try{ if(device && device.gatt.connected) device.gatt.disconnect(); }catch(e){}
+  stopStream(); stopTrack();
+  connecting=false; authed=false; locChar=null; authWrite=null; authNotify=null; device=null;
   setPillK("stLink","off","st_disconnected"); setPill("stAuth","off","—");
   document.getElementById("stName").textContent="—";
   refreshButtons();
 }
-async function disconnect(){ try{ if(device&&device.gatt.connected) device.gatt.disconnect(); }catch(e){} cleanup(); }
 
 let writing=false;
 async function writeLocation(lat,lon,alt){
